@@ -13,7 +13,7 @@ import { GTNCTA } from "@/components/sections/gtn-cta";
 
 export default function GTNHome() {
   return (
-    <div className="min-h-screen bg-white text-foreground">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <GTNNavbar />
       <GTNHero />
       <GTNAbout />
@@ -27,11 +27,13 @@ export default function GTNHome() {
       <GTNJoin />
       <GTNCTA />
       
-      {/* Footer */}
-      <footer className="py-8 bg-gray-900 text-white border-t border-gray-800">
+      <footer className="py-12 bg-background border-t border-white/10">
         <div className="container mx-auto px-4 text-center">
-          <p className="font-display text-sm">
-            © 2024 GTN Global Team of Network. All Rights Reserved.
+          <p className="font-display font-bold text-white mb-2">
+            © 2024 GTN Global Team of Network
+          </p>
+          <p className="text-gray-400 text-sm">
+            Stronger Together. United We Grow.
           </p>
         </div>
       </footer>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1"
+    />
+
+    <title>GTN — Global Team of Network</title>
+
+    <!-- SEO -->
+    <meta name="description" content="GTN — A Global Network empowering leaders, entrepreneurs, and communities worldwide." />
+    <meta name="keywords" content="GTN, Global Team of Network, leadership, community, networking, entrepreneurship" />
+
+    <!-- Social Sharing -->
+    <meta property="og:title" content="GTN — Global Team of Network" />
+    <meta property="og:description" content="A global ecosystem for leaders, entrepreneurs, and communities." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/opengraph.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GTN — Global Team of Network" />
+    <meta name="twitter:description" content="A global ecosystem for leaders and entrepreneurs." />
+    <meta name="twitter:image" content="/opengraph.jpg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..900&family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- SAFE CSP (LOCAL + PRODUCTION) -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+        img-src * data: blob:;
+        font-src * data: blob:;
+        script-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+        connect-src *;
+        style-src * 'unsafe-inline';
+      "
+    />
+    <script type="module" crossorigin src="/assets/index-BaLYPDbI.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BZzIryK8.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <!-- Vite injects correct production bundle automatically -->
+  </body>
+</html>

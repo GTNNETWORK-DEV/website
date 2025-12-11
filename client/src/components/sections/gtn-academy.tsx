@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { BookOpen, Zap, Crown } from "lucide-react";
 
 const modules = [
   {
     icon: BookOpen,
     title: "Basic Modules",
-    color: "bg-blue-100 text-blue-600",
+    color: "text-secondary",
     items: [
       "Network Marketing Fundamentals",
       "How to start, present, and build your network",
@@ -16,7 +16,7 @@ const modules = [
   {
     icon: Zap,
     title: "Skilled Modules",
-    color: "bg-yellow-100 text-yellow-600",
+    color: "text-accent",
     items: [
       "Leadership skills",
       "Team building",
@@ -27,7 +27,7 @@ const modules = [
   {
     icon: Crown,
     title: "Mastery Modules",
-    color: "bg-primary/10 text-primary",
+    color: "text-primary",
     items: [
       "Advanced leadership",
       "Business management",
@@ -39,18 +39,18 @@ const modules = [
 
 export function GTNAcademy() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-32 bg-background">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="section-title mb-4">GTN Academy — Education & Training</h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Education is the backbone of success. GTN Academy provides structured learning modules designed for all levels. Training is offered both online and offline to ensure every member can learn at their own pace.
+          <h2 className="section-title text-white mb-6">GTN Academy — Education & Training</h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Education is the backbone of success. GTN Academy provides structured learning modules designed for all levels.
           </p>
         </motion.div>
 
@@ -64,22 +64,18 @@ export function GTNAcademy() {
               viewport={{ once: true }}
             >
               <Card className="feature-card h-full">
-                <CardHeader>
-                  <div className={`w-14 h-14 rounded-lg ${module.color} flex items-center justify-center mb-4`}>
-                    <module.icon size={28} />
-                  </div>
-                  <CardTitle className="text-xl">{module.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {module.items.map((item, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                        <span className="text-muted-foreground">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
+                <div className={`w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center mb-6 ${module.color}`}>
+                  <module.icon size={32} />
+                </div>
+                <h3 className="text-2xl font-display font-bold text-white mb-6">{module.title}</h3>
+                <ul className="space-y-4">
+                  {module.items.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-gray-300">
+                      <span className="text-primary font-bold mt-1">▸</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </Card>
             </motion.div>
           ))}

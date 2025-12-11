@@ -13,36 +13,36 @@ const reasons = [
 
 export function GTNWhyChoose() {
   return (
-    <section className="py-20 bg-gradient-to-r from-primary/5 to-secondary/5">
+    <section className="py-32 bg-gradient-to-b from-background to-background/80">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="section-title mb-6">Why Networkers Choose GTN</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12">
+          <h2 className="section-title text-white mb-6">Why Networkers Choose GTN</h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             GTN isn't just a platform — It's a global movement built for people who want to succeed with integrity.
           </p>
         </motion.div>
 
-        <div className="max-w-3xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
             {reasons.map((reason, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.08 }}
                 viewport={{ once: true }}
-                className="flex items-start gap-4"
+                className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/10 hover:border-primary/50 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 mt-1">
-                  <Check size={18} />
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1">
+                  <Check size={16} className="text-white" />
                 </div>
-                <p className="text-lg text-foreground font-medium leading-relaxed">{reason}</p>
+                <p className="text-lg text-gray-300 font-medium">{reason}</p>
               </motion.div>
             ))}
           </div>

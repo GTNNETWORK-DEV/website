@@ -9,65 +9,60 @@ export function GTNNavbar() {
 
   const navLinks = [
     { name: "About", href: "#about" },
-    { name: "What We Offer", href: "#offer" },
-    { name: "Join Now", href: "#join" },
-    { name: "Contact", href: "#contact" },
+    { name: "Offerings", href: "#offer" },
+    { name: "Join", href: "#join" },
   ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-gray-800 text-white border-b border-gray-700 shadow-lg">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="text-2xl font-display font-bold text-white hover:text-primary transition-colors cursor-pointer">
+    <nav className="fixed top-0 w-full z-50 bg-gradient-to-r from-background via-background to-background border-b border-white/10 backdrop-blur-md">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        <Link href="/" className="text-3xl font-display font-black text-white hover:text-primary transition-colors cursor-pointer">
           GTN
         </Link>
 
-        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-gray-300 hover:text-primary transition-colors"
+              className="text-sm font-semibold text-gray-300 hover:text-primary transition-colors uppercase tracking-wide"
             >
               {link.name}
             </a>
           ))}
-          <Button className="cta-button h-10 px-6">
+          <Button className="cta-button px-8 h-11">
             Get Started
           </Button>
         </div>
 
-        {/* Mobile Toggle */}
         <button
-          className="md:hidden text-white"
+          className="md:hidden text-white hover:text-primary"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
-      {/* Mobile Nav */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-gray-900 border-b border-gray-700"
+            className="md:hidden bg-background/95 border-b border-white/10 backdrop-blur-md"
           >
-            <div className="container px-4 py-4 flex flex-col gap-4">
+            <div className="container px-4 py-6 flex flex-col gap-4">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-base font-medium text-gray-300 hover:text-primary transition-colors"
+                  className="text-lg font-semibold text-gray-300 hover:text-primary transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.name}
                 </a>
               ))}
-              <Button className="cta-button w-full h-10">
+              <Button className="cta-button w-full h-12">
                 Get Started
               </Button>
             </div>
