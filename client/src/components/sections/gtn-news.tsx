@@ -55,9 +55,6 @@ export function GTNNews() {
               Breaking news and important updates from the Global Team Network.
             </p>
           </div>
-          <a href="/admin/news" className="text-primary hover:text-primary/80 font-semibold flex items-center gap-2 transition-colors">
-            Manage News <ArrowRight className="w-4 h-4" />
-          </a>
         </motion.div>
 
         {latestNews.length === 0 ? (

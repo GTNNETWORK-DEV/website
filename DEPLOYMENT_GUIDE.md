@@ -10,22 +10,27 @@ client/
 │   ├── pages/
 │   │   ├── gtn-home.tsx           # Main homepage with all sections
 │   │   ├── admin/
-│   │   │   ├── blogs-admin.tsx     # Admin panel for blogs (internal use only)
-│   │   │   ├── news-admin.tsx      # Admin panel for news (internal use only)
-│   │   │   └── projects-admin.tsx  # Admin panel for projects (internal use only)
+│   │   │   ├── login.tsx           # Admin login page
+│   │   │   └── dashboard.tsx       # Main admin dashboard with sidebar
 │   │   └── not-found.tsx
 │   ├── components/
+│   │   ├── admin/                  # Admin Dashboard Components
+│   │   │   ├── projects-manager.tsx
+│   │   │   ├── events-manager.tsx
+│   │   │   ├── news-manager.tsx
+│   │   │   └── blogs-manager.tsx
 │   │   ├── layout/
-│   │   │   └── gtn-navbar.tsx      # Navigation bar (About, Offerings, Join only)
+│   │   │   └── gtn-navbar.tsx      # Navigation bar (About, Offerings, Projects, Join)
 │   │   ├── sections/
-│   │   │   ├── gtn-hero.tsx        # Hero with animated map (glow effect left-right)
+│   │   │   ├── gtn-hero.tsx        # Hero with static map & glow animation
 │   │   │   ├── gtn-about.tsx       # About section
-│   │   │   ├── gtn-ongoing-projects.tsx  # Ongoing projects (centered/justified)
+│   │   │   ├── gtn-ongoing-projects.tsx  # Ongoing projects
+│   │   │   ├── gtn-ongoing-events.tsx    # Ongoing events (just below projects)
 │   │   │   ├── gtn-benefits.tsx    # Benefits & Protection
 │   │   │   ├── gtn-academy.tsx     # Academy section
 │   │   │   ├── gtn-income-projects.tsx   # Income projects
-│   │   │   ├── gtn-blog.tsx        # Blog section (displays data from localStorage)
-│   │   │   ├── gtn-news.tsx        # News section (displays data from localStorage)
+│   │   │   ├── gtn-blog.tsx        # Blog section (displays data)
+│   │   │   ├── gtn-news.tsx        # News section (displays data)
 │   │   │   ├── gtn-join.tsx        # Join form (POSTs to your PHP backend)
 │   │   │   └── [other sections]
 │   └── App.tsx                     # Router setup
@@ -35,82 +40,50 @@ client/
 ```
 
 ### Page Routes
-- `/` - Main homepage (shows all sections: Hero → About → Projects → Benefits → ... → Blog → News → Join Form → CTA)
-- `/admin/blogs` - Blog management (add/edit/delete with image upload)
-- `/admin/news` - News management (add/edit/delete with image upload)
-- `/admin/projects` - Project management (add/edit/delete with image upload)
-
-### Data Storage (Frontend)
-Currently using localStorage for:
-- `gtn_projects` - Ongoing projects list
-- `gtn_blogs` - Blog posts
-- `gtn_news` - News items
-
-Images are stored as base64 in localStorage (temporary for prototyping).
+- `/` - Main homepage
+- `/admin` - Admin Login (User: `admin`, Pass: `admin@123`)
+- `/admin/dashboard` - Unified Admin Panel (Projects, Events, News, Blogs)
 
 ---
 
 ## Backend Integration with Namecheap PHP
 
-### 1. Join Form Submission
-**Current Setup:** Form POSTs to external PHP endpoint (configure in `gtn-join.tsx`)
-```javascript
-<form
-  method="POST"
-  action="https://your-cheep-php-endpoint.com/join"
->
-```
+### 1. Admin Authentication
+**Credentials:**
+- Username: `admin`
+- Password: `admin@123`
 
-**PHP Backend Should:**
-- Accept POST requests with: fullName, email, phone, country, company
-- Validate and sanitize input
-- Store in database
-- Send confirmation email
-- Return success/error response
+**Recommendation:**
+In production, implement a secure PHP login endpoint (`/api/login`) that returns a JWT token or session cookie instead of hardcoded frontend credentials.
 
----
+### 2. Database Schema (MySQL - Namecheap)
 
-## 2. Blog, News & Projects (CMS Integration)
-
-### Option A: Keep Frontend-Only (Current)
-- Admin pages store data in browser localStorage
-- Data persists only on user's device
-- Good for single-admin setup
-
-### Option B: Integrate with PHP Backend (Recommended for Production)
-
-#### What to Change:
-1. **Replace localStorage with API calls**
-   - `gtn-blog.tsx` → Fetch from `/api/blogs`
-   - `gtn-news.tsx` → Fetch from `/api/news`
-   - `gtn-ongoing-projects.tsx` → Fetch from `/api/projects`
-
-2. **Admin Pages API Integration**
-   - `blogs-admin.tsx` → POST to `/api/blogs/create`, PUT to `/api/blogs/update`, DELETE to `/api/blogs/delete`
-   - `news-admin.tsx` → POST to `/api/news/create`, DELETE to `/api/news/delete`
-   - `projects-admin.tsx` → POST to `/api/projects/create`, PUT to `/api/projects/update`, DELETE to `/api/projects/delete`
-
-3. **Image Uploads**
-   - Send multipart/form-data to PHP backend
-   - Store images on server filesystem or cloud storage
-   - Return image URLs for display
-
----
-
-## 3. Database Schema (MySQL - Namecheap)
+Create these tables in your MySQL database:
 
 ```sql
+-- Admin Users
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- Insert default admin (you should hash the password 'admin@123' properly in PHP)
+INSERT INTO users (username, password_hash) VALUES ('admin', 'HASHED_PASSWORD_HERE');
+
+-- Blogs
 CREATE TABLE blogs (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(255) NOT NULL,
   excerpt TEXT NOT NULL,
   author VARCHAR(100) NOT NULL,
-  image LONGBLOB,
+  image LONGBLOB, -- Or use image_url if storing files on disk
   image_url VARCHAR(500),
   date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- News
 CREATE TABLE news (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(255) NOT NULL,
@@ -121,6 +94,7 @@ CREATE TABLE news (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ongoing Projects
 CREATE TABLE projects (
   id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
@@ -130,6 +104,19 @@ CREATE TABLE projects (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ongoing Events
+CREATE TABLE events (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  image LONGBLOB,
+  image_url VARCHAR(500),
+  event_date DATE,
+  location VARCHAR(255),
+  link VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Join Requests
 CREATE TABLE join_requests (
   id INT PRIMARY KEY AUTO_INCREMENT,
   full_name VARCHAR(255) NOT NULL,
@@ -143,7 +130,7 @@ CREATE TABLE join_requests (
 
 ---
 
-## 4. Building for Production
+## 3. Building for Production
 
 ### Build Frontend
 ```bash
@@ -168,135 +155,25 @@ This generates optimized static files in `dist/` folder.
 
 ---
 
-## 5. API Endpoints (Example PHP Structure)
+## 4. API Endpoints (PHP Implementation Required)
 
+You need to build PHP scripts to handle these requests. The frontend is currently using `localStorage` for prototyping. You will need to replace the `useEffect` and `useState` data fetching logic in the Admin Components (`client/src/components/admin/*.tsx`) with `fetch()` calls to your PHP API.
+
+**Example Structure:**
 ```
-/api/
-  /blogs/
-    - GET /all (fetch all blogs)
-    - POST /create (new blog)
-    - PUT /:id/update (edit blog)
-    - DELETE /:id (delete blog)
-  /news/
-    - GET /all (fetch all news)
-    - POST /create (new news)
-    - DELETE /:id (delete news)
-  /projects/
-    - GET /all (fetch all projects)
-    - POST /create (new project)
-    - PUT /:id/update (edit project)
-    - DELETE /:id (delete project)
-  /join/
-    - POST /submit (handle join form)
+public_html/
+  api/
+    login.php
+    blogs.php (handle GET, POST, DELETE)
+    news.php
+    projects.php
+    events.php
+    join.php
 ```
 
 ---
 
-## 6. Environment Variables (Frontend)
-Create `.env` file:
-```
-VITE_API_URL=https://yourdomain.com/api
-```
-
----
-
-## 7. Key Features Summary
-
-### Sections (Homepage)
-1. **Hero** - Animated map with left-right glow effect
-2. **About** - Company mission
-3. **Ongoing Projects** - Centered/justified project cards with links/images
-4. **Membership Benefits** - Core benefits
-5. **Academy** - Learning programs
-6. **Income Projects** - Revenue opportunities
-7. **Platforms** - Tools & platforms
-8. **Network Expansion** - Growth section
-9. **Support System** - Support structure
-10. **Why Choose** - Differentiators
-11. **Blog** - Latest articles (admin panel: `/admin/blogs`)
-12. **News** - Latest updates (admin panel: `/admin/news`)
-13. **Join Form** - POSTs to your PHP backend
-14. **CTA** - Final call to action
-
-### Admin Interfaces (Internal Only)
-- `/admin/blogs` - Full CRUD for blog posts
-- `/admin/news` - Full CRUD for news items
-- `/admin/projects` - Full CRUD for ongoing projects
-
----
-
-## 8. Notes for PHP Backend Developer
-
-### Join Form Data
-```json
-{
-  "fullName": "string",
-  "email": "string",
-  "phone": "string",
-  "country": "string",
-  "company": "string (optional)"
-}
-```
-
-### Blog Post Format
-```json
-{
-  "title": "string",
-  "excerpt": "string",
-  "author": "string",
-  "image": "base64 or file",
-  "date": "ISO string"
-}
-```
-
-### News Format
-```json
-{
-  "title": "string",
-  "description": "string",
-  "image": "base64 or file",
-  "date": "ISO string"
-}
-```
-
-### Project Format
-```json
-{
-  "name": "string",
-  "logo": "base64 or file",
-  "link": "string (optional)"
-}
-```
-
----
-
-## 9. Development vs Production
-
-### Development (Current)
-- Frontend: React with Vite
-- Data: localStorage (browser)
-- Images: base64 encoded
-
-### Production (Namecheap)
-- Frontend: Static HTML/CSS/JS (after build)
-- Data: MySQL database
-- Images: Server filesystem or CDN
-- API: PHP endpoints
-- HTTPS: Enable SSL on Namecheap
-
----
-
-## 10. Security Considerations
-
-1. **Form Validation** - Validate all inputs server-side
-2. **SQL Injection** - Use prepared statements
-3. **File Uploads** - Validate file types, store outside web root
-4. **CORS** - Configure if frontend and backend on different domains
-5. **Rate Limiting** - Implement on join form endpoint
-6. **Authentication** - Add for admin endpoints (/admin/*)
-
----
-
-## Contact
-This frontend is ready to integrate with your Namecheap + PHP backend.
-All frontend routes and structure are finalized as per requirements.
+## 5. Security Checklist
+1. **Change Default Password:** Immediately change `admin@123` to a strong password.
+2. **Secure API:** Ensure `/api/*` endpoints check for authentication (session or token) before allowing edits.
+3. **HTTPS:** Ensure SSL is active on your domain.

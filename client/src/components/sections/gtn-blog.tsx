@@ -56,9 +56,6 @@ export function GTNBlog() {
               Stay updated with insights, stories, and tips from the GTN community.
             </p>
           </div>
-          <a href="/admin/blogs" className="text-primary hover:text-primary/80 font-semibold flex items-center gap-2 transition-colors">
-            Manage Blogs <ArrowRight className="w-4 h-4" />
-          </a>
         </motion.div>
 
         {latestBlogs.length === 0 ? (
@@ -109,20 +106,6 @@ export function GTNBlog() {
                 </div>
               </motion.div>
             ))}
-          </motion.div>
-        )}
-
-        {blogs.length > 3 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <a href="/admin/blogs" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-semibold transition-colors">
-              View All Articles <ArrowRight className="w-4 h-4" />
-            </a>
           </motion.div>
         )}
       </div>

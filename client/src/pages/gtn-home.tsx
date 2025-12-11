@@ -5,6 +5,7 @@ import { GTNBenefits } from "@/components/sections/gtn-benefits";
 import { GTNAcademy } from "@/components/sections/gtn-academy";
 import { GTNIncomeProjects } from "@/components/sections/gtn-income-projects";
 import { GTNOngoingProjects } from "@/components/sections/gtn-ongoing-projects";
+import { GTNOngoingEvents } from "@/components/sections/gtn-ongoing-events";
 import { GTNPlatforms } from "@/components/sections/gtn-platforms";
 import { GTNNetworkExpansion } from "@/components/sections/gtn-network-expansion";
 import { GTNSupportSystem } from "@/components/sections/gtn-support-system";
@@ -21,6 +22,7 @@ export default function GTNHome() {
       <GTNHero />
       <GTNAbout />
       <GTNOngoingProjects />
+      <GTNOngoingEvents />
       <GTNBenefits />
       <GTNAcademy />
       <GTNIncomeProjects />

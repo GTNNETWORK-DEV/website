@@ -25,17 +25,6 @@ const itemVariants = {
   },
 };
 
-const floatVariants = {
-  initial: { y: 0 },
-  animate: {
-    y: [-30, 30, -30],
-    transition: {
-      duration: 5,
-      repeat: Infinity,
-    },
-  },
-};
-
 export function GTNHero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-background to-background/80 pt-28 pb-16 overflow-hidden">
@@ -147,17 +136,9 @@ export function GTNHero() {
             </motion.div>
           </motion.div>
 
-          <motion.div
-            variants={floatVariants}
-            initial="initial"
-            animate="animate"
-            className="hidden lg:block"
-          >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-              className="relative"
-            >
+          {/* Static Map with Glow Animation */}
+          <div className="hidden lg:block relative">
+            <div className="relative">
               {/* Moving glow animation left to right */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-transparent rounded-2xl opacity-0 blur-3xl"
@@ -183,8 +164,8 @@ export function GTNHero() {
                 }}
               />
               <img src={globalMap} alt="Global Network" className="w-full rounded-2xl shadow-2xl relative z-10 border border-white/10" />
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </div>
 
