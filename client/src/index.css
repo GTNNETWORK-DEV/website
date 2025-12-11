@@ -34,6 +34,7 @@
 }
 
 :root {
+  /* Light base for content, dark header */
   --background: 0 0% 100%;
   --foreground: 220 13% 20%;
 
@@ -43,16 +44,18 @@
   --popover: 0 0% 100%;
   --popover-foreground: 220 13% 20%;
 
-  --primary: 142 76% 36%; /* Green */
+  /* Primary: Bright Green from mockup */
+  --primary: 120 100% 35%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 210 100% 50%; /* Blue */
+  /* Secondary: Bright Blue from mockup */
+  --secondary: 210 100% 47%;
   --secondary-foreground: 0 0% 100%;
 
   --muted: 220 12% 84%;
   --muted-foreground: 220 8% 46%;
 
-  --accent: 142 76% 36%;
+  --accent: 120 100% 35%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
@@ -60,9 +63,18 @@
 
   --border: 220 13% 91%;
   --input: 220 13% 91%;
-  --ring: 142 76% 36%;
+  --ring: 120 100% 35%;
 
   --radius: 0.5rem;
+}
+
+/* Dark header background */
+.dark-header {
+  @apply bg-gray-800 text-white;
+}
+
+.dark-section {
+  @apply bg-gray-900;
 }
 
 @layer base {
@@ -79,7 +91,7 @@
 
 @layer utilities {
   .cta-button {
-    @apply bg-primary text-primary-foreground font-semibold uppercase tracking-wide;
+    @apply bg-primary text-primary-foreground font-bold uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105 transition-all;
   }
 
   .section-title {
@@ -88,5 +100,13 @@
 
   .feature-card {
     @apply bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow;
+  }
+
+  .dark-card {
+    @apply bg-gray-700 text-white border border-gray-600;
+  }
+
+  .stats-bar {
+    @apply bg-secondary text-white;
   }
 }

@@ -10,15 +10,15 @@ export function GTNNavbar() {
   const navLinks = [
     { name: "About", href: "#about" },
     { name: "What We Offer", href: "#offer" },
-    { name: "Membership", href: "#membership" },
+    { name: "Join Now", href: "#join" },
     { name: "Contact", href: "#contact" },
   ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav className="fixed top-0 w-full z-50 bg-gray-800 text-white border-b border-gray-700 shadow-lg">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-display font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
+        <Link href="/" className="text-2xl font-display font-bold text-white hover:text-primary transition-colors cursor-pointer">
           GTN
         </Link>
 
@@ -28,7 +28,7 @@ export function GTNNavbar() {
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="text-sm font-medium text-gray-300 hover:text-primary transition-colors"
             >
               {link.name}
             </a>
@@ -40,7 +40,7 @@ export function GTNNavbar() {
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden text-foreground"
+          className="md:hidden text-white"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -54,14 +54,14 @@ export function GTNNavbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white border-b border-gray-200"
+            className="md:hidden bg-gray-900 border-b border-gray-700"
           >
             <div className="container px-4 py-4 flex flex-col gap-4">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-base font-medium text-foreground hover:text-primary transition-colors"
+                  className="text-base font-medium text-gray-300 hover:text-primary transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.name}
