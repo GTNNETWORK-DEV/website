@@ -3,61 +3,195 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import globalMap from "@assets/generated_images/professional_networking_global_connection.png";
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+    },
+  },
+};
+
+const floatVariants = {
+  initial: { y: 0 },
+  animate: {
+    y: [-10, 10, -10],
+    transition: {
+      duration: 6,
+      repeat: Infinity,
+    },
+  },
+};
+
 export function GTNHero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-background to-background/80 pt-20 overflow-hidden">
+      {/* Animated background elements */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(76,175,80,0.2),rgba(210,180,222,0))]" />
+        <motion.div 
+          className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(76,175,80,0.2),rgba(210,180,222,0))]"
+          animate={{
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+          }}
+        />
       </div>
+
+      {/* Animated floating orbs */}
+      <motion.div 
+        className="absolute top-20 left-10 w-72 h-72 rounded-full border border-primary/20"
+        animate={{
+          rotate: 360,
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+      <motion.div 
+        className="absolute bottom-20 right-10 w-96 h-96 rounded-full border border-secondary/20"
+        animate={{
+          rotate: -360,
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <span className="inline-block text-primary font-display font-bold text-lg mb-4 uppercase tracking-widest">
+            <motion.span 
+              variants={itemVariants}
+              className="inline-block text-primary font-display font-bold text-lg mb-6 uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full border border-primary/30"
+            >
               ✦ Welcome to GTN
-            </span>
+            </motion.span>
             
-            <h1 className="section-title mb-6 text-white">
+            <motion.h1 
+              variants={itemVariants}
+              className="section-title mb-4 text-white"
+            >
               A Global Platform Built for <span className="gradient-accent text-transparent bg-clip-text">Networkers</span>
-            </h1>
+            </motion.h1>
 
-            <p className="text-xl text-gray-300 mb-8 leading-relaxed max-w-xl">
+            {/* Tagline with animation */}
+            <motion.div
+              variants={itemVariants}
+              className="mb-8"
+            >
+              <h2 className="text-3xl md:text-4xl font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-secondary via-primary to-accent mb-4 animate-pulse">
+                Turn Your Network Into Net Worth
+              </h2>
+            </motion.div>
+
+            <motion.p 
+              variants={itemVariants}
+              className="text-xl text-gray-300 mb-6 leading-relaxed max-w-xl"
+            >
               GTN is a global non-profit organization dedicated to empowering networkers, leaders, investors, and entrepreneurs across the world.
-            </p>
+            </motion.p>
 
-            <p className="text-lg text-gray-400 mb-10 leading-relaxed max-w-xl">
+            <motion.p 
+              variants={itemVariants}
+              className="text-lg text-gray-400 mb-10 leading-relaxed max-w-xl"
+            >
               We provide a trusted environment where individuals can learn, grow, build teams, create sustainable income, and connect with a worldwide community of professionals.
-            </p>
+            </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              variants={itemVariants}
               className="flex flex-col sm:flex-row gap-4"
             >
-              <Button size="lg" className="cta-button h-14 px-10 text-lg shadow-xl">
-                Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-2 border-primary text-primary hover:bg-primary/10 rounded-lg">
-                Learn More
-              </Button>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex-1 sm:flex-none"
+              >
+                <Button size="lg" className="cta-button h-14 px-10 text-lg shadow-xl w-full sm:w-auto">
+                  Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex-1 sm:flex-none"
+              >
+                <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-2 border-primary text-primary hover:bg-primary/10 rounded-lg w-full sm:w-auto">
+                  Learn More
+                </Button>
+              </motion.div>
             </motion.div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            variants={floatVariants}
+            initial="initial"
+            animate="animate"
             className="hidden lg:block"
           >
-            <img src={globalMap} alt="Global Network" className="w-full rounded-2xl shadow-2xl" />
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+              className="relative"
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl opacity-0 blur-2xl"
+                animate={{
+                  opacity: [0.2, 0.4, 0.2],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                }}
+              />
+              <img src={globalMap} alt="Global Network" className="w-full rounded-2xl shadow-2xl relative z-10 border border-white/10" />
+            </motion.div>
           </motion.div>
         </div>
       </div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        animate={{
+          y: [0, 10, 0],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+        }}
+      >
+        <div className="flex flex-col items-center gap-2 text-primary">
+          <span className="text-xs font-semibold uppercase tracking-widest">Scroll to explore</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
+      </motion.div>
     </section>
   );
 }
