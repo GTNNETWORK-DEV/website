@@ -3,7 +3,7 @@ import { GTNHero } from "@/components/sections/gtn-hero";
 import { GTNAbout } from "@/components/sections/gtn-about";
 import { GTNFeatures } from "@/components/sections/gtn-features";
 import { GTNStats } from "@/components/sections/gtn-stats";
-import { GTNMembership } from "@/components/sections/gtn-membership";
+import { GTNJoin } from "@/components/sections/gtn-join";
 import { GTNCTA } from "@/components/sections/gtn-cta";
 
 export default function GTNHome() {
@@ -14,7 +14,7 @@ export default function GTNHome() {
       <GTNAbout />
       <GTNFeatures />
       <GTNStats />
-      <GTNMembership />
+      <GTNJoin />
       <GTNCTA />
       
       {/* Footer */}
