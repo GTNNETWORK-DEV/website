@@ -20,10 +20,10 @@ export default function GTNHome() {
       <GTNNavbar />
       <GTNHero />
       <GTNAbout />
+      <GTNOngoingProjects />
       <GTNBenefits />
       <GTNAcademy />
       <GTNIncomeProjects />
-      <GTNOngoingProjects />
       <GTNPlatforms />
       <GTNNetworkExpansion />
       <GTNSupportSystem />

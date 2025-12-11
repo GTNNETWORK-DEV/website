@@ -41,7 +41,7 @@ export function GTNBlog() {
   const latestBlogs = blogs.slice(0, 3);
 
   return (
-    <section className="py-32 bg-gradient-to-b from-background to-background/80">
+    <section className="py-20 bg-gradient-to-b from-background to-background/80">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -28,9 +28,9 @@ const itemVariants = {
 const floatVariants = {
   initial: { y: 0 },
   animate: {
-    y: [-10, 10, -10],
+    y: [-30, 30, -30],
     transition: {
-      duration: 6,
+      duration: 5,
       repeat: Infinity,
     },
   },
@@ -38,7 +38,7 @@ const floatVariants = {
 
 export function GTNHero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-background to-background/80 pt-32 pb-40 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-background to-background/80 pt-28 pb-16 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-20">
         <motion.div 
@@ -158,6 +158,20 @@ export function GTNHero() {
               transition={{ duration: 0.3 }}
               className="relative"
             >
+              {/* Moving glow animation left to right */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-transparent rounded-2xl opacity-0 blur-3xl"
+                animate={{
+                  x: [-400, 400],
+                  opacity: [0, 0.6, 0],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              {/* Pulsing glow background */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl opacity-0 blur-2xl"
                 animate={{
