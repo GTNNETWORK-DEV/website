@@ -1,8 +1,13 @@
 import { GTNNavbar } from "@/components/layout/gtn-navbar";
 import { GTNHero } from "@/components/sections/gtn-hero";
 import { GTNAbout } from "@/components/sections/gtn-about";
-import { GTNFeatures } from "@/components/sections/gtn-features";
-import { GTNStats } from "@/components/sections/gtn-stats";
+import { GTNBenefits } from "@/components/sections/gtn-benefits";
+import { GTNAcademy } from "@/components/sections/gtn-academy";
+import { GTNIncomeProjects } from "@/components/sections/gtn-income-projects";
+import { GTNPlatforms } from "@/components/sections/gtn-platforms";
+import { GTNNetworkExpansion } from "@/components/sections/gtn-network-expansion";
+import { GTNSupportSystem } from "@/components/sections/gtn-support-system";
+import { GTNWhyChoose } from "@/components/sections/gtn-why-choose";
 import { GTNJoin } from "@/components/sections/gtn-join";
 import { GTNCTA } from "@/components/sections/gtn-cta";
 
@@ -12,8 +17,13 @@ export default function GTNHome() {
       <GTNNavbar />
       <GTNHero />
       <GTNAbout />
-      <GTNFeatures />
-      <GTNStats />
+      <GTNBenefits />
+      <GTNAcademy />
+      <GTNIncomeProjects />
+      <GTNPlatforms />
+      <GTNNetworkExpansion />
+      <GTNSupportSystem />
+      <GTNWhyChoose />
       <GTNJoin />
       <GTNCTA />
       
