@@ -4,10 +4,13 @@ import { GTNAbout } from "@/components/sections/gtn-about";
 import { GTNBenefits } from "@/components/sections/gtn-benefits";
 import { GTNAcademy } from "@/components/sections/gtn-academy";
 import { GTNIncomeProjects } from "@/components/sections/gtn-income-projects";
+import { GTNOngoingProjects } from "@/components/sections/gtn-ongoing-projects";
 import { GTNPlatforms } from "@/components/sections/gtn-platforms";
 import { GTNNetworkExpansion } from "@/components/sections/gtn-network-expansion";
 import { GTNSupportSystem } from "@/components/sections/gtn-support-system";
 import { GTNWhyChoose } from "@/components/sections/gtn-why-choose";
+import { GTNBlog } from "@/components/sections/gtn-blog";
+import { GTNNews } from "@/components/sections/gtn-news";
 import { GTNJoin } from "@/components/sections/gtn-join";
 import { GTNCTA } from "@/components/sections/gtn-cta";
 
@@ -20,10 +23,13 @@ export default function GTNHome() {
       <GTNBenefits />
       <GTNAcademy />
       <GTNIncomeProjects />
+      <GTNOngoingProjects />
       <GTNPlatforms />
       <GTNNetworkExpansion />
       <GTNSupportSystem />
       <GTNWhyChoose />
+      <GTNBlog />
+      <GTNNews />
       <GTNJoin />
       <GTNCTA />
       

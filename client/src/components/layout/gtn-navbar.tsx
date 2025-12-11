@@ -36,6 +36,17 @@ export function GTNNavbar() {
               {link.name}
             </a>
           ))}
+          <div className="flex items-center gap-3 border-l border-white/20 pl-8">
+            <Link href="/admin/projects">
+              <a className="text-xs font-semibold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest">Projects</a>
+            </Link>
+            <Link href="/admin/blogs">
+              <a className="text-xs font-semibold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest">Blogs</a>
+            </Link>
+            <Link href="/admin/news">
+              <a className="text-xs font-semibold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest">News</a>
+            </Link>
+          </div>
           <Button className="cta-button px-8 h-11">
             Get Started
           </Button>
