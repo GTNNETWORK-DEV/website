@@ -16,10 +16,16 @@ export function GTNNavbar() {
   return (
     <nav className="fixed top-0 w-full z-50 bg-gradient-to-r from-background via-background to-background border-b border-white/10 backdrop-blur-md">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-        <Link href="/" className="text-3xl font-display font-black text-white hover:text-primary transition-colors cursor-pointer">
-          GTN
+        {/* Logo with text */}
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+          <img src="/gtn-logo.png" alt="GTN Logo" className="w-12 h-12" />
+          <div className="flex flex-col">
+            <span className="text-lg font-display font-black text-white">GTN</span>
+            <span className="text-xs font-semibold text-primary uppercase tracking-widest leading-none">Global Team Network</span>
+          </div>
         </Link>
 
+        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
@@ -35,6 +41,7 @@ export function GTNNavbar() {
           </Button>
         </div>
 
+        {/* Mobile Toggle */}
         <button
           className="md:hidden text-white hover:text-primary"
           onClick={() => setIsOpen(!isOpen)}
@@ -43,6 +50,7 @@ export function GTNNavbar() {
         </button>
       </div>
 
+      {/* Mobile Nav */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

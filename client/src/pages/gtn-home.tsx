@@ -27,14 +27,59 @@ export default function GTNHome() {
       <GTNJoin />
       <GTNCTA />
       
-      <footer className="py-12 bg-background border-t border-white/10">
-        <div className="container mx-auto px-4 text-center">
-          <p className="font-display font-bold text-white mb-2">
-            © 2024 GTN Global Team of Network
-          </p>
-          <p className="text-gray-400 text-sm">
-            Stronger Together. United We Grow.
-          </p>
+      {/* Footer */}
+      <footer className="py-16 bg-background border-t border-white/10">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            {/* Brand */}
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-3 mb-4">
+                <img src="/gtn-logo.png" alt="GTN Logo" className="w-16 h-16" />
+                <div>
+                  <div className="text-lg font-display font-black text-white">GTN</div>
+                  <div className="text-xs font-semibold text-primary uppercase tracking-widest">Global Team Network</div>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm">Empowering networkers, leaders, and investors worldwide.</p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="font-display font-bold text-white mb-4">Platform</h3>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#about" className="hover:text-primary transition-colors">About Us</a></li>
+                <li><a href="#offer" className="hover:text-primary transition-colors">Features</a></li>
+                <li><a href="#join" className="hover:text-primary transition-colors">Join</a></li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="font-display font-bold text-white mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-primary transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="font-display font-bold text-white mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 pt-8">
+            <p className="text-gray-400 text-sm text-center">
+              © 2024 GTN Global Team of Network. All Rights Reserved.<br />
+              <span className="text-primary font-semibold">Stronger Together. United We Grow.</span>
+            </p>
+          </div>
         </div>
       </footer>
     </div>
