@@ -38,7 +38,7 @@ const floatVariants = {
 
 export function GTNHero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-background to-background/80 pt-20 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-background to-background/80 pt-32 pb-40 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-20">
         <motion.div 
@@ -77,23 +77,24 @@ export function GTNHero() {
         }}
       />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="container mx-auto px-4 relative z-10 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
+            className="space-y-8"
           >
             <motion.span 
               variants={itemVariants}
-              className="inline-block text-primary font-display font-bold text-lg mb-6 uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full border border-primary/30"
+              className="inline-block text-primary font-display font-bold text-lg mb-2 uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full border border-primary/30"
             >
               ✦ Welcome to GTN
             </motion.span>
             
             <motion.h1 
               variants={itemVariants}
-              className="section-title mb-4 text-white"
+              className="section-title text-white leading-tight"
             >
               A Global Platform Built for <span className="gradient-accent text-transparent bg-clip-text">Networkers</span>
             </motion.h1>
@@ -101,30 +102,29 @@ export function GTNHero() {
             {/* Tagline with animation */}
             <motion.div
               variants={itemVariants}
-              className="mb-8"
             >
-              <h2 className="text-3xl md:text-4xl font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-secondary via-primary to-accent mb-4 animate-pulse">
+              <h2 className="text-3xl md:text-4xl font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-secondary via-primary to-accent animate-pulse">
                 Turn Your Network Into Net Worth
               </h2>
             </motion.div>
 
             <motion.p 
               variants={itemVariants}
-              className="text-xl text-gray-300 mb-6 leading-relaxed max-w-xl"
+              className="text-xl text-gray-300 leading-relaxed max-w-xl"
             >
               GTN is a global non-profit organization dedicated to empowering networkers, leaders, investors, and entrepreneurs across the world.
             </motion.p>
 
             <motion.p 
               variants={itemVariants}
-              className="text-lg text-gray-400 mb-10 leading-relaxed max-w-xl"
+              className="text-lg text-gray-400 leading-relaxed max-w-xl"
             >
               We provide a trusted environment where individuals can learn, grow, build teams, create sustainable income, and connect with a worldwide community of professionals.
             </motion.p>
 
             <motion.div
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 pt-4"
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -174,9 +174,9 @@ export function GTNHero() {
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll indicator - positioned at bottom with good spacing */}
       <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-20"
         animate={{
           y: [0, 10, 0],
         }}
@@ -185,9 +185,9 @@ export function GTNHero() {
           repeat: Infinity,
         }}
       >
-        <div className="flex flex-col items-center gap-2 text-primary">
-          <span className="text-xs font-semibold uppercase tracking-widest">Scroll to explore</span>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Scroll to explore</span>
+          <svg className="w-5 h-5 text-primary animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>

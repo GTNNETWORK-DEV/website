@@ -23,23 +23,22 @@ export function GTNJoin() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Form will POST to PHP backend
     const form = e.currentTarget as HTMLFormElement;
     form.submit();
   };
 
   return (
-    <section id="membership" className="py-20 bg-white">
+    <section id="join" className="py-32 bg-background">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="section-title mb-6">Join GTN Today</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="section-title text-white mb-6">Join GTN Today</h2>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             Take the first step towards building your network and creating sustainable income. Join thousands of networkers already growing with GTN.
           </p>
         </motion.div>
@@ -51,7 +50,7 @@ export function GTNJoin() {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto"
         >
-          <Card className="feature-card">
+          <Card className="feature-card bg-card">
             <form
               onSubmit={handleSubmit}
               method="POST"
@@ -65,9 +64,9 @@ export function GTNJoin() {
                 transition={{ duration: 0.4, delay: 0.1 }}
                 viewport={{ once: true }}
               >
-                <label className="block text-sm font-semibold text-foreground mb-2">
+                <label className="block text-sm font-semibold text-white mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <User className="w-4 h-4 text-primary" />
+                    <User className="w-5 h-5 text-primary" />
                     Full Name
                   </div>
                 </label>
@@ -78,7 +77,7 @@ export function GTNJoin() {
                   onChange={handleChange}
                   required
                   placeholder="Enter your full name"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 />
               </motion.div>
 
@@ -89,9 +88,9 @@ export function GTNJoin() {
                 transition={{ duration: 0.4, delay: 0.15 }}
                 viewport={{ once: true }}
               >
-                <label className="block text-sm font-semibold text-foreground mb-2">
+                <label className="block text-sm font-semibold text-white mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <Mail className="w-4 h-4 text-primary" />
+                    <Mail className="w-5 h-5 text-primary" />
                     Email Address
                   </div>
                 </label>
@@ -102,7 +101,7 @@ export function GTNJoin() {
                   onChange={handleChange}
                   required
                   placeholder="your@email.com"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 />
               </motion.div>
 
@@ -113,9 +112,9 @@ export function GTNJoin() {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 viewport={{ once: true }}
               >
-                <label className="block text-sm font-semibold text-foreground mb-2">
+                <label className="block text-sm font-semibold text-white mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <Phone className="w-4 h-4 text-primary" />
+                    <Phone className="w-5 h-5 text-primary" />
                     Phone Number
                   </div>
                 </label>
@@ -126,7 +125,7 @@ export function GTNJoin() {
                   onChange={handleChange}
                   required
                   placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 />
               </motion.div>
 
@@ -137,9 +136,9 @@ export function GTNJoin() {
                 transition={{ duration: 0.4, delay: 0.25 }}
                 viewport={{ once: true }}
               >
-                <label className="block text-sm font-semibold text-foreground mb-2">
+                <label className="block text-sm font-semibold text-white mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="w-4 h-4 text-primary" />
+                    <MapPin className="w-5 h-5 text-primary" />
                     Country
                   </div>
                 </label>
@@ -150,7 +149,7 @@ export function GTNJoin() {
                   onChange={handleChange}
                   required
                   placeholder="Select your country"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 />
               </motion.div>
 
@@ -161,9 +160,9 @@ export function GTNJoin() {
                 transition={{ duration: 0.4, delay: 0.3 }}
                 viewport={{ once: true }}
               >
-                <label className="block text-sm font-semibold text-foreground mb-2">
+                <label className="block text-sm font-semibold text-white mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="w-4 h-4 text-primary" />
+                    <Building2 className="w-5 h-5 text-primary" />
                     Company/Organization (Optional)
                   </div>
                 </label>
@@ -173,7 +172,7 @@ export function GTNJoin() {
                   value={formData.company}
                   onChange={handleChange}
                   placeholder="Your company or organization"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                 />
               </motion.div>
 
@@ -183,15 +182,15 @@ export function GTNJoin() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.35 }}
                 viewport={{ once: true }}
-                className="pt-4"
+                className="pt-2"
               >
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     required
-                    className="w-5 h-5 rounded border-gray-200 text-primary focus:ring-primary mt-1"
+                    className="w-5 h-5 rounded border-white/20 text-primary focus:ring-primary mt-1 bg-white/5"
                   />
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-gray-400">
                     I agree to the GTN Terms of Service and Privacy Policy
                   </span>
                 </label>
@@ -203,10 +202,11 @@ export function GTNJoin() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.4 }}
                 viewport={{ once: true }}
+                className="pt-4"
               >
                 <Button
                   type="submit"
-                  className="cta-button w-full h-14 text-lg font-bold shadow-lg hover:shadow-xl transition-all"
+                  className="cta-button w-full h-14 text-lg font-bold shadow-lg"
                 >
                   Join GTN Now
                 </Button>
@@ -222,7 +222,7 @@ export function GTNJoin() {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <p className="text-muted-foreground">
+          <p className="text-gray-400">
             <span className="text-primary font-semibold">Free to join.</span> Start building your network today. Our support team is ready to help you succeed.
           </p>
         </motion.div>
