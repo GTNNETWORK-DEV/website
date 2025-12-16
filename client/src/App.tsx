@@ -10,6 +10,7 @@ import GTNHome from "@/pages/gtn-home";
 // ADMIN PAGES
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
+import JoinRequestsPage from "@/pages/admin/join-requests";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
 
       {/* dashboard */}
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/join-requests" component={JoinRequestsPage} />
 
       {/* ================= FALLBACK ================= */}
       <Route component={NotFound} />

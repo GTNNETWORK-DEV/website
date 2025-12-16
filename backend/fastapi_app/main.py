@@ -39,6 +39,8 @@ PG_SSLMODE = os.getenv("PGSSLMODE", "require")
 
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin@123")
+SUPER_ADMIN_USER = os.getenv("SUPER_ADMIN_USER", "superadmin")
+SUPER_ADMIN_PASS = os.getenv("SUPER_ADMIN_PASS", "Gtn@123")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-me")
 default_origins = [
     "https://gtnnetwork.com",
@@ -294,7 +296,7 @@ def validate_session_token(token: str) -> bool:
     if time.time() - ts_int > SESSION_TTL_SECONDS:
         return False
 
-    return username == ADMIN_USER
+    return username in {ADMIN_USER, SUPER_ADMIN_USER}
 
 
 def require_admin(request: Request):
@@ -369,7 +371,11 @@ async def login(request: Request, response: Response):
     username = (data.get("username") or "").strip()
     password = data.get("password") or ""
 
-    if username == ADMIN_USER and password == ADMIN_PASS:
+    is_admin = (username == ADMIN_USER and password == ADMIN_PASS) or (
+        username == SUPER_ADMIN_USER and password == SUPER_ADMIN_PASS
+    )
+
+    if is_admin:
         token = create_session_token(username)
         response.set_cookie(
             COOKIE_NAME,
