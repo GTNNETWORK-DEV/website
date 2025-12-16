@@ -279,7 +279,7 @@ def health(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post("/api/login.php")
+@app.post("/api/login")
 async def login(request: Request, response: Response):
     data = {}
     if request.headers.get("content-type", "").startswith("application/json"):
@@ -305,19 +305,19 @@ async def login(request: Request, response: Response):
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
-@app.post("/api/logout.php")
+@app.post("/api/logout")
 def logout(response: Response):
     response.delete_cookie(COOKIE_NAME)
     return {"success": True}
 
 
-@app.get("/api/session.php")
+@app.get("/api/session")
 def session(request: Request):
     token = request.cookies.get(COOKIE_NAME)
     return {"authenticated": bool(token and validate_session_token(token))}
 
 
-@app.post("/api/upload.php")
+@app.post("/api/upload")
 async def upload_file(
     _: bool = Depends(require_admin),
     file: UploadFile = File(...),
@@ -359,13 +359,13 @@ def form_or_query_id(id_form: Optional[int], id_query: Optional[int]) -> int:
 
 
 # Projects
-@app.get("/api/projects.php", response_model=List[ProjectOut])
+@app.get("/api/projects", response_model=List[ProjectOut])
 def get_projects(db: Session = Depends(get_db)):
     projects = db.query(Project).order_by(Project.created_at.desc()).all()
     return projects
 
 
-@app.post("/api/projects.php")
+@app.post("/api/projects")
 def create_project(
     name: str = Form(...),
     logo_url: Optional[str] = Form(None),
@@ -380,7 +380,7 @@ def create_project(
     return {"success": True, "project": ProjectOut.model_validate(project)}
 
 
-@app.delete("/api/projects.php")
+@app.delete("/api/projects")
 def delete_project(
     id: Optional[int] = Form(None),
     id_query: Optional[int] = None,
@@ -396,13 +396,13 @@ def delete_project(
 
 
 # Events
-@app.get("/api/events.php", response_model=List[EventOut])
+@app.get("/api/events", response_model=List[EventOut])
 def get_events(db: Session = Depends(get_db)):
     events = db.query(Event).order_by(Event.created_at.desc()).all()
     return events
 
 
-@app.post("/api/events.php")
+@app.post("/api/events")
 def create_event(
     name: str = Form(...),
     event_date: Optional[str] = Form(None),
@@ -432,7 +432,7 @@ def create_event(
     return {"success": True, "event": EventOut.model_validate(event)}
 
 
-@app.delete("/api/events.php")
+@app.delete("/api/events")
 def delete_event(
     id: Optional[int] = Form(None),
     id_query: Optional[int] = None,
@@ -448,13 +448,13 @@ def delete_event(
 
 
 # News
-@app.get("/api/news.php", response_model=List[NewsOut])
+@app.get("/api/news", response_model=List[NewsOut])
 def get_news(db: Session = Depends(get_db)):
     news_items = db.query(News).order_by(News.created_at.desc()).all()
     return news_items
 
 
-@app.post("/api/news.php")
+@app.post("/api/news")
 def create_news(
     title: str = Form(...),
     description: str = Form(...),
@@ -473,7 +473,7 @@ def create_news(
     return {"success": True, "news": NewsOut.model_validate(news_item)}
 
 
-@app.delete("/api/news.php")
+@app.delete("/api/news")
 def delete_news(
     id: Optional[int] = Form(None),
     id_query: Optional[int] = None,
@@ -489,13 +489,13 @@ def delete_news(
 
 
 # Blogs
-@app.get("/api/blogs.php", response_model=List[BlogOut])
+@app.get("/api/blogs", response_model=List[BlogOut])
 def get_blogs(db: Session = Depends(get_db)):
     blogs = db.query(Blog).order_by(Blog.created_at.desc()).all()
     return blogs
 
 
-@app.post("/api/blogs.php")
+@app.post("/api/blogs")
 def create_blog(
     title: str = Form(...),
     excerpt: str = Form(...),
@@ -516,7 +516,7 @@ def create_blog(
     return {"success": True, "blog": BlogOut.model_validate(blog)}
 
 
-@app.delete("/api/blogs.php")
+@app.delete("/api/blogs")
 def delete_blog(
     id: Optional[int] = Form(None),
     id_query: Optional[int] = None,

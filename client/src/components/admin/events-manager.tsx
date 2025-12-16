@@ -24,7 +24,7 @@ export function EventsManager() {
   // FETCH EVENTS
   // ------------------
   const fetchEvents = async () => {
-    const res = await fetch(`${API}/events.php`);
+    const res = await fetch(`${API}/events`);
     const data = await res.json();
     setEvents(data || []);
   };
@@ -40,7 +40,7 @@ export function EventsManager() {
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch(`${API}/upload.php`, {
+    const res = await fetch(`${API}/upload`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -73,7 +73,7 @@ export function EventsManager() {
     if (link) form.append("link", link);
     if (imageUrl) form.append("image_url", imageUrl);
 
-    const res = await fetch(`${API}/events.php`, {
+    const res = await fetch(`${API}/events`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -101,7 +101,7 @@ export function EventsManager() {
   const deleteEvent = async (id: number) => {
     if (!confirm("Delete this event?")) return;
 
-    const res = await fetch(`${API}/events.php`, {
+    const res = await fetch(`${API}/events`, {
       method: "DELETE",
       credentials: "include",
       body: new URLSearchParams({ id: String(id) }),

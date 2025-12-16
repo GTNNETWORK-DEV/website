@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function verifySession() {
       try {
-        const res = await fetch(`${API_BASE}/session.php`, {
+        const res = await fetch(`${API_BASE}/session`, {
           credentials: "include",
         });
         const data = await res.json();
@@ -37,7 +37,7 @@ export default function AdminDashboard() {
   }, [setLocation, API_BASE]);
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE}/logout.php`, {
+    await fetch(`${API_BASE}/logout`, {
       method: "POST",
       credentials: "include",
     });

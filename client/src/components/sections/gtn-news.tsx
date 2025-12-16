@@ -17,7 +17,7 @@ export function GTNNews() {
 
   // 🔥 API CALL (THIS WAS MISSING)
   useEffect(() => {
-    fetch(`${API_BASE}/news.php`)
+    fetch(`${API_BASE}/news`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {

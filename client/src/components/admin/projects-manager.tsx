@@ -20,7 +20,7 @@ export function ProjectsManager() {
   // FETCH PROJECTS
   // -----------------------
   const fetchProjects = async () => {
-    const res = await fetch(`${API_BASE}/projects.php`);
+    const res = await fetch(`${API_BASE}/projects`);
     const data = await res.json();
     setProjects(data || []);
   };
@@ -36,7 +36,7 @@ export function ProjectsManager() {
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch(`${API_BASE}/upload.php`, {
+    const res = await fetch(`${API_BASE}/upload`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -67,7 +67,7 @@ export function ProjectsManager() {
     if (logoUrl) form.append("logo_url", logoUrl);
     if (link) form.append("link", link);
 
-    const res = await fetch(`${API_BASE}/projects.php`, {
+    const res = await fetch(`${API_BASE}/projects`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -94,7 +94,7 @@ export function ProjectsManager() {
   const deleteProject = async (id: number) => {
     if (!confirm("Delete this project?")) return;
 
-    const res = await fetch(`${API_BASE}/projects.php`, {
+    const res = await fetch(`${API_BASE}/projects`, {
       method: "DELETE",
       credentials: "include",
       body: new URLSearchParams({ id: String(id) }),

@@ -18,7 +18,7 @@ export function GTNBlog() {
 
   // 🔥 API CALL (THIS WAS MISSING)
   useEffect(() => {
-    fetch(`${API_BASE}/blogs.php`)
+    fetch(`${API_BASE}/blogs`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {

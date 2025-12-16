@@ -18,7 +18,7 @@ export function GTNOngoingEvents() {
 
   // 🔥 THIS IS THE MISSING PART (API CALL)
   useEffect(() => {
-    fetch(`${API_BASE}/events.php`)
+    fetch(`${API_BASE}/events`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {

@@ -18,7 +18,7 @@ export function GTNOngoingProjects() {
   useEffect(() => {
     async function loadProjects() {
       try {
-        const res = await fetch(`${API_BASE}/projects.php`);
+        const res = await fetch(`${API_BASE}/projects`);
         const data = await res.json();
 
         // PHP gives logo_url → component needs logo

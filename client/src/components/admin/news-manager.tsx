@@ -20,7 +20,7 @@ export function NewsManager() {
   // FETCH NEWS
   // ------------------
   const fetchNews = async () => {
-    const res = await fetch(`${API}/news.php`);
+    const res = await fetch(`${API}/news`);
     const data = await res.json();
     setNews(data || []);
   };
@@ -36,7 +36,7 @@ export function NewsManager() {
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch(`${API}/upload.php`, {
+    const res = await fetch(`${API}/upload`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -67,7 +67,7 @@ export function NewsManager() {
     form.append("description", description);
     if (imageUrl) form.append("image_url", imageUrl);
 
-    const res = await fetch(`${API}/news.php`, {
+    const res = await fetch(`${API}/news`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -93,7 +93,7 @@ export function NewsManager() {
   const deleteNews = async (id: number) => {
     if (!confirm("Delete this news item?")) return;
 
-    const res = await fetch(`${API}/news.php`, {
+    const res = await fetch(`${API}/news`, {
       method: "DELETE",
       credentials: "include",
       body: new URLSearchParams({ id: String(id) }),

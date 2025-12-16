@@ -22,7 +22,7 @@ export function BlogsManager() {
   // FETCH BLOGS
   // ------------------
   const fetchBlogs = async () => {
-    const res = await fetch(`${API_BASE}/blogs.php`);
+    const res = await fetch(`${API_BASE}/blogs`);
     const data = await res.json();
     setBlogs(data || []);
   };
@@ -38,7 +38,7 @@ export function BlogsManager() {
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch(`${API_BASE}/upload.php`, {
+    const res = await fetch(`${API_BASE}/upload`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -70,7 +70,7 @@ export function BlogsManager() {
     form.append("author", author);
     if (imageUrl) form.append("image_url", imageUrl);
 
-    const res = await fetch(`${API_BASE}/blogs.php`, {
+    const res = await fetch(`${API_BASE}/blogs`, {
       method: "POST",
       body: form,
       credentials: "include",
@@ -97,7 +97,7 @@ export function BlogsManager() {
   const deleteBlog = async (id: number) => {
     if (!confirm("Delete this blog?")) return;
 
-    const res = await fetch(`${API_BASE}/blogs.php`, {
+    const res = await fetch(`${API_BASE}/blogs`, {
       method: "DELETE",
       credentials: "include",
       body: new URLSearchParams({ id: String(id) }),

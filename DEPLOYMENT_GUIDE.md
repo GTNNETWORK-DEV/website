@@ -163,12 +163,12 @@ You need to build PHP scripts to handle these requests. The frontend is currentl
 ```
 public_html/
   api/
-    login.php
-    blogs.php (handle GET, POST, DELETE)
-    news.php
-    projects.php
-    events.php
-    join.php
+    login
+    blogs (handle GET, POST, DELETE)
+    news
+    projects
+    events
+    join
 ```
 
 ---
