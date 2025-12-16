@@ -131,7 +131,7 @@ class JoinRequest(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     full_name: Mapped[str] = mapped_column(Text, nullable=False)
     email: Mapped[Optional[str]] = mapped_column(Text)
-    whatsapp: Mapped[Optional[str]] = mapped_column(Text)
+    phone: Mapped[Optional[str]] = mapped_column(Text)
     country: Mapped[Optional[str]] = mapped_column(Text)
     company: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[DateTime]] = mapped_column(
@@ -150,7 +150,7 @@ def ensure_join_columns() -> None:
         conn.execute(
             text(
                 "ALTER TABLE IF EXISTS join_requests "
-                "ADD COLUMN IF NOT EXISTS whatsapp TEXT"
+                "ADD COLUMN IF NOT EXISTS phone TEXT"
             )
         )
         conn.execute(
@@ -252,7 +252,7 @@ class JoinRequestOut(BaseModel):
     id: int
     full_name: str
     email: Optional[str] = None
-    whatsapp: Optional[str] = None
+    phone: Optional[str] = None
     country: Optional[str] = None
     company: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -616,6 +616,7 @@ def create_join_request(
     full_name: str = Form(...),
     email: Optional[str] = Form(None),
     whatsapp: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
     country: Optional[str] = Form(None),
     company: Optional[str] = Form(None),
     db: Session = Depends(get_db),
@@ -624,10 +625,16 @@ def create_join_request(
     if not name_clean:
         raise HTTPException(status_code=400, detail="full_name is required")
 
+    phone_clean = None
+    if phone and phone.strip():
+        phone_clean = phone.strip()
+    elif whatsapp and whatsapp.strip():
+        phone_clean = whatsapp.strip()
+
     join_request = JoinRequest(
         full_name=name_clean,
         email=email.strip() if email else None,
-        whatsapp=whatsapp.strip() if whatsapp else None,
+        phone=phone_clean,
         country=country.strip() if country else None,
         company=company.strip() if company else None,
     )
