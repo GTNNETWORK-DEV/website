@@ -37,16 +37,36 @@ export function GTNJoin() {
       if (formData.country) body.append("country", formData.country.trim());
       if (formData.company) body.append("company", formData.company.trim());
 
-      const res = await fetch(`${API_BASE}/join`, {
-        method: "POST",
-        body,
-      });
-      const data = await res.json().catch(() => ({}));
+      // Try primary endpoint, then legacy PHP alias as fallback
+      const endpoints = [`${API_BASE}/join`, `${API_BASE}/join.php`];
+      let success = false;
+      let lastError = "";
 
-      if (!res.ok) {
-        const msg =
-          data?.detail || data?.error || data?.message || "Join request failed";
-        throw new Error(msg);
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            body,
+          });
+          const data = await res.json().catch(() => ({}));
+
+          if (res.ok) {
+            success = true;
+            break;
+          } else {
+            lastError =
+              data?.detail ||
+              data?.error ||
+              data?.message ||
+              `Join request failed (${res.status})`;
+          }
+        } catch (err: any) {
+          lastError = err?.message || "Join request failed";
+        }
+      }
+
+      if (!success) {
+        throw new Error(lastError || "Join request failed");
       }
 
       setShowWhatsapp(true);
