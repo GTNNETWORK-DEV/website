@@ -19,7 +19,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy import String, Text, Date, DateTime
 from pydantic import BaseModel, ConfigDict
@@ -128,6 +128,27 @@ class Blog(Base):
 Base.metadata.create_all(bind=engine)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+
+def sync_sequences() -> None:
+    """Ensure Postgres sequences are ahead of current max ids."""
+    tables = ("projects", "events", "news", "blogs")
+    with engine.begin() as conn:
+        for table in tables:
+            conn.execute(
+                text(
+                    f"""
+                    SELECT setval(
+                        pg_get_serial_sequence('{table}', 'id'),
+                        GREATEST((SELECT COALESCE(MAX(id), 0) + 1 FROM {table}), 1),
+                        false
+                    );
+                    """
+                )
+            )
+
+
+sync_sequences()
 
 
 def get_db() -> Generator[Session, None, None]:
