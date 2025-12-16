@@ -173,6 +173,9 @@ def ensure_join_columns() -> None:
         )
 
 
+ensure_join_columns()
+
+
 def sync_sequences() -> None:
     """Ensure Postgres sequences are ahead of current max ids."""
     tables = ("projects", "events", "news", "blogs", "join_requests")
