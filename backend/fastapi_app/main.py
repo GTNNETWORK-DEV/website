@@ -57,6 +57,7 @@ COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_BASE_URL = os.getenv("UPLOAD_BASE_URL")
 
 # --------------------
 # Database setup
@@ -309,7 +310,14 @@ async def upload_file(
         content = await file.read()
         out_file.write(content)
 
-    return {"success": True, "url": f"/uploads/{final_name}"}
+    relative_url = f"/uploads/{final_name}"
+    public_url = (
+        f"{UPLOAD_BASE_URL.rstrip('/')}{relative_url}"
+        if UPLOAD_BASE_URL
+        else relative_url
+    )
+
+    return {"success": True, "url": public_url}
 
 
 # --------------------
