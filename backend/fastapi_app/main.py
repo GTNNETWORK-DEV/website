@@ -125,6 +125,20 @@ class Blog(Base):
     )
 
 
+class JoinRequest(Base):
+    __tablename__ = "join_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    full_name: Mapped[str] = mapped_column(Text, nullable=False)
+    email: Mapped[Optional[str]] = mapped_column(Text)
+    whatsapp: Mapped[Optional[str]] = mapped_column(Text)
+    country: Mapped[Optional[str]] = mapped_column(Text)
+    company: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[Optional[DateTime]] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 Base.metadata.create_all(bind=engine)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
@@ -132,7 +146,7 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 def sync_sequences() -> None:
     """Ensure Postgres sequences are ahead of current max ids."""
-    tables = ("projects", "events", "news", "blogs")
+    tables = ("projects", "events", "news", "blogs", "join_requests")
     with engine.begin() as conn:
         for table in tables:
             conn.execute(
@@ -198,6 +212,17 @@ class BlogOut(BaseModel):
     excerpt: str
     author: str
     image_url: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+
+class JoinRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    full_name: str
+    email: Optional[str] = None
+    whatsapp: Optional[str] = None
+    country: Optional[str] = None
+    company: Optional[str] = None
     created_at: Optional[datetime] = None
 
 
@@ -552,6 +577,42 @@ def delete_blog(
     return {"success": True}
 
 
+# Join Requests
+@app.post("/api/join", response_model=JoinRequestOut)
+def create_join_request(
+    full_name: str = Form(...),
+    email: Optional[str] = Form(None),
+    whatsapp: Optional[str] = Form(None),
+    country: Optional[str] = Form(None),
+    company: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    name_clean = full_name.strip()
+    if not name_clean:
+        raise HTTPException(status_code=400, detail="full_name is required")
+
+    join_request = JoinRequest(
+        full_name=name_clean,
+        email=email.strip() if email else None,
+        whatsapp=whatsapp.strip() if whatsapp else None,
+        country=country.strip() if country else None,
+        company=company.strip() if company else None,
+    )
+    db.add(join_request)
+    db.commit()
+    db.refresh(join_request)
+    return JoinRequestOut.model_validate(join_request)
+
+
+@app.get("/api/join", response_model=List[JoinRequestOut])
+def list_join_requests(
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    requests = db.query(JoinRequest).order_by(JoinRequest.created_at.desc()).all()
+    return requests
+
+
 # --------------------
 # Legacy .php route aliases (for compatibility with existing frontend bundles)
 # --------------------
@@ -572,6 +633,8 @@ legacy_routes = [
     ("GET", "/api/blogs.php", get_blogs),
     ("POST", "/api/blogs.php", create_blog),
     ("DELETE", "/api/blogs.php", delete_blog),
+    ("POST", "/api/join.php", create_join_request),
+    ("GET", "/api/join.php", list_join_requests),
 ]
 
 for method, path, handler in legacy_routes:
