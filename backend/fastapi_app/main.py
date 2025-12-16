@@ -40,7 +40,7 @@ PG_SSLMODE = os.getenv("PGSSLMODE", "require")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin@123")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-me")
-default_origins = ["*", "https://gtnnetwork.com",
+default_origins = ["*", "https://gtnnetwork.com", "https://www.gtnnetwork.com",
     "https://website-chi-two-94.vercel.app",
     "http://localhost:3000",
     "http://localhost:5000",
