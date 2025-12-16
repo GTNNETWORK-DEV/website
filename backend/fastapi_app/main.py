@@ -4,7 +4,7 @@ import hmac
 import hashlib
 import secrets
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Generator
 from datetime import date, datetime
 
 from fastapi import (
@@ -128,7 +128,7 @@ Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
-def get_db() -> Session:
+def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
@@ -240,6 +240,24 @@ app.add_middleware(
 if not UPLOAD_DIR.exists():
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
+
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    """
+    Ensure every response carries permissive CORS headers and that
+    OPTIONS preflight requests return quickly.
+    """
+    if request.method == "OPTIONS":
+        response = Response(status_code=200)
+    else:
+        response = await call_next(request)
+
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+
+    return response
 
 
 @app.get("/api/health")
