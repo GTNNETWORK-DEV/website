@@ -251,17 +251,18 @@ async def add_cors_headers(request: Request, call_next):
     OPTIONS preflight requests return quickly.
     """
     origin = request.headers.get("origin")
-    is_allowed = origin in ALLOWED_ORIGINS if origin else False
 
     if request.method == "OPTIONS":
-        response = Response(status_code=200 if is_allowed else 403)
+        response = Response(status_code=200)
     else:
         response = await call_next(request)
 
-    if is_allowed:
-        response.headers["Access-Control-Allow-Origin"] = origin  # type: ignore[arg-type]
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin  # echo caller
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Vary"] = "Origin"
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "*"
 
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
