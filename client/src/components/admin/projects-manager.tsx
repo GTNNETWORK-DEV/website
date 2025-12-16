@@ -1,212 +1,204 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Trash2, Plus, Edit2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Trash2, Plus, Upload } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface Project {
-  id: string;
+  id: number;
   name: string;
-  logo: string;
-  link?: string;
+  logo_url: string | null;
+  link: string | null;
 }
 
 export function ProjectsManager() {
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem("gtn_projects");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [name, setName] = useState("");
+  const [link, setLink] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    logo: "",
-    link: "",
-  });
-
-  const [previewImage, setPreviewImage] = useState<string>("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  // -----------------------
+  // FETCH PROJECTS
+  // -----------------------
+  const fetchProjects = async () => {
+    const res = await fetch(`${API_BASE}/projects.php`);
+    const data = await res.json();
+    setProjects(data || []);
+  };
 
   useEffect(() => {
-    localStorage.setItem("gtn_projects", JSON.stringify(projects));
-  }, [projects]);
+    fetchProjects();
+  }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setFormData(prev => ({ ...prev, logo: base64 }));
-        setPreviewImage(base64);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // -----------------------
+  // UPLOAD IMAGE
+  // -----------------------
+  const uploadImage = async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
 
-  const handleAddProject = () => {
-    if (formData.name && formData.logo) {
-      if (editingId) {
-        setProjects(projects.map(p => 
-          p.id === editingId 
-            ? { ...p, name: formData.name, logo: formData.logo, link: formData.link }
-            : p
-        ));
-        setEditingId(null);
-      } else {
-        const newProject: Project = {
-          id: Date.now().toString(),
-          name: formData.name,
-          logo: formData.logo,
-          link: formData.link || undefined,
-        };
-        setProjects([...projects, newProject]);
-      }
-      setFormData({ name: "", logo: "", link: "" });
-      setPreviewImage("");
-    }
-  };
-
-  const handleEditProject = (project: Project) => {
-    setFormData({
-      name: project.name,
-      logo: project.logo,
-      link: project.link || "",
+    const res = await fetch(`${API_BASE}/upload.php`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
     });
-    setPreviewImage(project.logo);
-    setEditingId(project.id);
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.error || "Upload failed");
+      return;
+    }
+
+    setLogoUrl(data.url);
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
+  // -----------------------
+  // CREATE PROJECT
+  // -----------------------
+  const createProject = async () => {
+    if (!name.trim()) {
+      alert("Project name required");
+      return;
+    }
+
+    setLoading(true);
+
+    const form = new FormData();
+    form.append("name", name);
+    if (logoUrl) form.append("logo_url", logoUrl);
+    if (link) form.append("link", link);
+
+    const res = await fetch(`${API_BASE}/projects.php`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    setLoading(false);
+
+    if (!data.success) {
+      alert(data.error || "Failed to create project");
+      return;
+    }
+
+    setName("");
+    setLink("");
+    setLogoUrl(null);
+    fetchProjects();
   };
 
-  const handleCancel = () => {
-    setFormData({ name: "", logo: "", link: "" });
-    setPreviewImage("");
-    setEditingId(null);
+  // -----------------------
+  // DELETE PROJECT
+  // -----------------------
+  const deleteProject = async (id: number) => {
+    if (!confirm("Delete this project?")) return;
+
+    const res = await fetch(`${API_BASE}/projects.php`, {
+      method: "DELETE",
+      credentials: "include",
+      body: new URLSearchParams({ id: String(id) }),
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.error || "Delete failed");
+      return;
+    }
+
+    fetchProjects();
   };
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-display font-bold text-white">Manage Projects</h2>
-      </div>
+      <h1 className="text-2xl font-bold">Projects Manager</h1>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card className="feature-card bg-card p-8">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {editingId ? "Edit Project" : "Add New Project"}
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Project Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="Project name"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+      {/* CREATE FORM */}
+      <div className="bg-white/5 p-6 rounded-lg border border-white/10 space-y-4">
+        <input
+          className="w-full p-2 rounded bg-black border border-white/20"
+          placeholder="Project name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Project Link (Optional)</label>
-                <input
-                  type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData({...formData, link: e.target.value})}
-                  placeholder="https://example.com"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <input
+          className="w-full p-2 rounded bg-black border border-white/20"
+          placeholder="Project link (optional)"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Project Logo/Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <div className="flex items-center gap-4">
+          <label className="cursor-pointer flex items-center gap-2 text-sm text-primary">
+            <Upload className="w-4 h-4" />
+            Upload Logo
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={(e) =>
+                e.target.files && uploadImage(e.target.files[0])
+              }
+            />
+          </label>
 
-              <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={handleAddProject}
-                  className="cta-button flex-1 h-12 flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> {editingId ? "Update Project" : "Add Project"}
-                </Button>
-                {editingId && (
-                  <Button
-                    onClick={handleCancel}
-                    variant="outline"
-                    className="flex-1 h-12"
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="preview"
+              className="h-12 rounded bg-white"
+            />
+          )}
         </div>
 
-        {/* Image Preview */}
-        {previewImage && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="lg:col-span-1"
+        <button
+          onClick={createProject}
+          disabled={loading}
+          className="px-4 py-2 bg-primary text-black rounded flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {loading ? "Saving..." : "Add Project"}
+        </button>
+      </div>
+
+      {/* PROJECT LIST */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {projects.map((p) => (
+          <div
+            key={p.id}
+            className="border border-white/10 rounded-lg p-4 bg-white/5 space-y-3"
           >
-            <Card className="feature-card bg-card p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Logo Preview</h3>
+            {p.logo_url && (
               <img
-                src={previewImage}
-                alt="Preview"
-                className="w-full h-32 object-contain rounded-lg border border-white/10 bg-white/5 p-4"
+                src={p.logo_url}
+                alt={p.name}
+                className="h-24 mx-auto object-contain"
               />
-            </Card>
-          </motion.div>
-        )}
-      </div>
+            )}
 
-      {/* Projects Grid */}
-      <div>
-        <h3 className="text-xl font-bold text-white mb-6">All Projects ({projects.length})</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <Card key={project.id} className="feature-card bg-card p-6 flex flex-col gap-4">
-              <img
-                src={project.logo}
-                alt={project.name}
-                className="w-full h-32 object-contain rounded-lg border border-white/10 bg-white/5 p-4"
-              />
-              <div className="flex-1">
-                <h4 className="text-lg font-bold text-white mb-2">{project.name}</h4>
-                {project.link && (
-                  <p className="text-sm text-primary truncate mb-4">{project.link}</p>
-                )}
-              </div>
-              <div className="flex gap-2 pt-4 border-t border-white/10">
-                <button
-                  onClick={() => handleEditProject(project)}
-                  className="flex-1 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Edit2 className="w-4 h-4" /> Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteProject(project.id)}
-                  className="flex-1 p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" /> Delete
-                </button>
-              </div>
-            </Card>
-          ))}
-        </div>
+            <h3 className="text-lg font-semibold text-center">{p.name}</h3>
+
+            {p.link && (
+              <a
+                href={p.link}
+                target="_blank"
+                className="text-sm text-primary block text-center"
+              >
+                Visit
+              </a>
+            )}
+
+            <button
+              onClick={() => deleteProject(p.id)}
+              className="w-full mt-2 text-red-400 flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

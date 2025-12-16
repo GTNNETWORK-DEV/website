@@ -1,35 +1,19 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { User, Mail, Phone, MapPin, Building2 } from "lucide-react";
+import { User, Mail, Phone, MapPin, Building2, X } from "lucide-react";
 import { useState } from "react";
 
+// ✅ IMPORT YOUR QR IMAGE
+import whatsappQR from "../../../../attached_assets/whatsapp-qr.png";
+
 export function GTNJoin() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    country: "",
-    company: ""
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
-    form.submit();
-  };
+  const [showWhatsapp, setShowWhatsapp] = useState(false);
 
   return (
     <section id="join" className="py-32 bg-background">
       <div className="container mx-auto px-4">
+
+        {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -37,196 +21,118 @@ export function GTNJoin() {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <h2 className="section-title text-white mb-6">Join GTN Today</h2>
+          <h2 className="section-title text-white mb-6">
+            Join GTN Today
+          </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Take the first step towards building your network and creating sustainable income. Join thousands of networkers already growing with GTN.
+            Join our global network and get access to verified professionals,
+            ethical opportunities, and exclusive community benefits.
           </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="max-w-2xl mx-auto"
-        >
-          <Card className="feature-card bg-card">
-            <form
-              onSubmit={handleSubmit}
-              method="POST"
-              action="https://your-cheep-php-endpoint.com/join"
-              className="space-y-6"
+        {/* CARD */}
+        <Card className="max-w-2xl mx-auto p-8 bg-card border border-white/10 relative">
+
+          {/* CLOSE ICON (when WhatsApp shown) */}
+          {showWhatsapp && (
+            <button
+              onClick={() => setShowWhatsapp(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
-              {/* Full Name */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                viewport={{ once: true }}
-              >
-                <label className="block text-sm font-semibold text-white mb-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-5 h-5 text-primary" />
-                    Full Name
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your full name"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
-                />
-              </motion.div>
+              <X />
+            </button>
+          )}
 
-              {/* Email */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-                viewport={{ once: true }}
-              >
-                <label className="block text-sm font-semibold text-white mb-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mail className="w-5 h-5 text-primary" />
-                    Email Address
-                  </div>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
-                />
-              </motion.div>
+          {/* FORM (STATIC UI ONLY) */}
+          {!showWhatsapp && (
+            <form className="space-y-6">
 
-              {/* Phone */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                viewport={{ once: true }}
-              >
-                <label className="block text-sm font-semibold text-white mb-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Phone className="w-5 h-5 text-primary" />
-                    Phone Number
-                  </div>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
-                />
-              </motion.div>
+              <Input label="Full Name" icon={<User />} />
+              <Input label="Email Address" icon={<Mail />} />
+              <Input label="WhatsApp Number" icon={<Phone />} />
+              <Input label="Country" icon={<MapPin />} />
+              <Input label="Company (Optional)" icon={<Building2 />} />
 
-              {/* Country */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-                viewport={{ once: true }}
+              {/* JOIN BUTTON */}
+              <button
+                type="button"
+                onClick={() => setShowWhatsapp(true)}
+                className="w-full h-14 rounded-xl bg-[#21b754] text-white text-lg font-bold hover:brightness-110 transition"
               >
-                <label className="block text-sm font-semibold text-white mb-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    Country
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  required
-                  placeholder="Select your country"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
-                />
-              </motion.div>
-
-              {/* Company/Organization */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                viewport={{ once: true }}
-              >
-                <label className="block text-sm font-semibold text-white mb-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="w-5 h-5 text-primary" />
-                    Company/Organization (Optional)
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleChange}
-                  placeholder="Your company or organization"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
-                />
-              </motion.div>
-
-              {/* Terms */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.35 }}
-                viewport={{ once: true }}
-                className="pt-2"
-              >
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    required
-                    className="w-5 h-5 rounded border-white/20 text-primary focus:ring-primary mt-1 bg-white/5"
-                  />
-                  <span className="text-sm text-gray-400">
-                    I agree to the GTN Terms of Service and Privacy Policy
-                  </span>
-                </label>
-              </motion.div>
-
-              {/* Submit Button */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.4 }}
-                viewport={{ once: true }}
-                className="pt-4"
-              >
-                <Button
-                  type="submit"
-                  className="cta-button w-full h-14 text-lg font-bold shadow-lg"
-                >
-                  Join GTN Now
-                </Button>
-              </motion.div>
+                Join GTN Now
+              </button>
             </form>
-          </Card>
-        </motion.div>
+          )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.45 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <p className="text-gray-400">
-            <span className="text-primary font-semibold">Free to join.</span> Start building your network today. Our support team is ready to help you succeed.
-          </p>
-        </motion.div>
+          {/* WHATSAPP REVEAL */}
+          <AnimatePresence>
+            {showWhatsapp && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="text-center py-6"
+              >
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  Join Our WhatsApp Channel
+                </h3>
+
+                <p className="text-gray-400 mb-6">
+                  Scan the QR code or click the button below to join
+                  our official GTN WhatsApp channel.
+                </p>
+
+                {/* QR IMAGE */}
+                <img
+                  src={whatsappQR}
+                  alt="Join GTN WhatsApp"
+                  className="w-48 h-48 mx-auto rounded-2xl border-2 border-[#21b754]/40 shadow-lg mb-6"
+                />
+
+                {/* WHATSAPP BUTTON */}
+                <a
+                  href="https://whatsapp.com/channel/0029Va9dDqx0lwgp9t6f1245"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-[#21b754] text-white font-bold px-10 py-4 rounded-xl text-lg hover:brightness-110 transition"
+                >
+                  Join via WhatsApp
+                </a>
+
+                <p className="text-xs text-gray-500 mt-6">
+                  You’ll receive updates, verified opportunities, and community access.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </Card>
       </div>
     </section>
+  );
+}
+
+/* =========================
+   INPUT COMPONENT
+   ========================= */
+function Input({
+  label,
+  icon,
+}: {
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-sm font-semibold text-white mb-2">
+        <span className="text-[#21b754]">{icon}</span>
+        {label}
+      </label>
+      <input
+        placeholder={label}
+        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#21b754]/40"
+      />
+    </div>
   );
 }

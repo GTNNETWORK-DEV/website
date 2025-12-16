@@ -4,27 +4,48 @@ import { Card } from "@/components/ui/card";
 import { User, Lock, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminLogin() {
   const [_, setLocation] = useLocation();
   const [formData, setFormData] = useState({
     username: "",
-    password: ""
+    password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.username === "admin" && formData.password === "admin@123") {
-      localStorage.setItem("gtn_admin_auth", "true");
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/login.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.success === false) {
+        setError(data?.error || "Invalid username or password");
+        return;
+      }
+
       setLocation("/admin/dashboard");
-    } else {
-      setError("Invalid username or password");
+    } catch (_err) {
+      setError("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,13 +59,19 @@ export default function AdminLogin() {
       >
         <Card className="feature-card bg-card p-8 border border-white/10">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-display font-bold text-white mb-2">Admin Login</h1>
-            <p className="text-gray-400">Enter your credentials to access the dashboard</p>
+            <h1 className="text-3xl font-display font-bold text-white mb-2">
+              Admin Login
+            </h1>
+            <p className="text-gray-400">
+              Enter your credentials to access the dashboard
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-white mb-2">Username</label>
+              <label className="block text-sm font-semibold text-white mb-2">
+                Username
+              </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
@@ -60,7 +87,9 @@ export default function AdminLogin() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-white mb-2">Password</label>
+              <label className="block text-sm font-semibold text-white mb-2">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
@@ -79,8 +108,13 @@ export default function AdminLogin() {
               <p className="text-red-400 text-sm text-center">{error}</p>
             )}
 
-            <Button type="submit" className="cta-button w-full h-12 text-lg">
-              Login <ArrowRight className="ml-2 w-4 h-4" />
+            <Button
+              type="submit"
+              className="cta-button w-full h-12 text-lg"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}{" "}
+              <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </form>
         </Card>

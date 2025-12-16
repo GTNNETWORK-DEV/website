@@ -1,25 +1,46 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Calendar, FileText, Newspaper, FolderKanban, LogOut } from "lucide-react";
+import { Calendar, FileText, Newspaper, FolderKanban, LogOut } from "lucide-react";
 import { ProjectsManager } from "@/components/admin/projects-manager";
 import { EventsManager } from "@/components/admin/events-manager";
 import { NewsManager } from "@/components/admin/news-manager";
 import { BlogsManager } from "@/components/admin/blogs-manager";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminDashboard() {
   const [_, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("projects");
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("gtn_admin_auth") === "true";
-    if (!isAuthenticated) {
-      setLocation("/admin");
-    }
-  }, [setLocation]);
+    async function verifySession() {
+      try {
+        const res = await fetch(`${API_BASE}/session.php`, {
+          credentials: "include",
+        });
+        const data = await res.json();
 
-  const handleLogout = () => {
-    localStorage.removeItem("gtn_admin_auth");
+        if (!data?.authenticated) {
+          setLocation("/admin");
+          return;
+        }
+      } catch (_err) {
+        setLocation("/admin");
+        return;
+      } finally {
+        setCheckingAuth(false);
+      }
+    }
+
+    verifySession();
+  }, [setLocation, API_BASE]);
+
+  const handleLogout = async () => {
+    await fetch(`${API_BASE}/logout.php`, {
+      method: "POST",
+      credentials: "include",
+    });
     setLocation("/admin");
   };
 
@@ -29,6 +50,10 @@ export default function AdminDashboard() {
     { id: "news", label: "News", icon: Newspaper },
     { id: "blogs", label: "Blogs", icon: FileText },
   ];
+
+  if (checkingAuth) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex">

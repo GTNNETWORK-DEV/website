@@ -1,23 +1,42 @@
 import { motion } from "framer-motion";
 import { ExternalLink, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
+import { API_BASE } from "@/lib/api";
 
 interface Project {
+  logo: string | undefined;
   id: string;
   name: string;
-  logo: string;
-  link?: string;
+  logo_url: string | null;
+  link?: string | null;
 }
 
 export function GTNOngoingProjects() {
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem("gtn_projects");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem("gtn_projects", JSON.stringify(projects));
-  }, [projects]);
+    async function loadProjects() {
+      try {
+        const res = await fetch(`${API_BASE}/projects.php`);
+        const data = await res.json();
+
+        // PHP gives logo_url → component needs logo
+        const formatted = data.map((p: any) => ({
+          ...p,
+          logo: p.logo_url,
+        }));
+
+        setProjects(formatted);
+      } catch (err) {
+        console.error("Error loading projects:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProjects();
+  }, [API_BASE]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -39,7 +58,6 @@ export function GTNOngoingProjects() {
     },
   };
 
-  // Calculate justify alignment based on project count
   const getJustifyClass = () => {
     if (projects.length === 1) return "justify-center";
     if (projects.length === 2) return "justify-center gap-12";
@@ -50,11 +68,12 @@ export function GTNOngoingProjects() {
   return (
     <section id="projects" className="py-20 bg-background">
       <div className="container mx-auto px-4">
+        
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
           className="text-center mb-20"
         >
           <h2 className="section-title text-white mb-6">Ongoing Projects</h2>
@@ -63,23 +82,30 @@ export function GTNOngoingProjects() {
           </p>
         </motion.div>
 
-        {projects.length === 0 ? (
+        {/* LOADING STATE */}
+        {loading ? (
+          <div className="text-center py-16">
+            <p className="text-gray-400 text-lg">Loading Projects...</p>
+          </div>
+        ) : projects.length === 0 ? (
+          
+          // NO PROJECTS
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
             className="text-center py-16"
           >
             <Zap className="w-16 h-16 text-primary/30 mx-auto mb-4" />
             <p className="text-gray-400 text-lg">No projects yet. Check back soon!</p>
           </motion.div>
         ) : (
+          
+          // PROJECT GRID
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
             className={`flex flex-wrap items-center ${getJustifyClass()} max-w-6xl mx-auto`}
           >
             {projects.map((project) => (
@@ -90,27 +116,19 @@ export function GTNOngoingProjects() {
                 className="group"
               >
                 {project.link ? (
+                  
+                  // LINKED PROJECT CARD
                   <a
                     href={project.link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block relative"
                   >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent rounded-xl opacity-0 blur-xl group-hover:opacity-50 transition-opacity duration-300"
-                      animate={{
-                        scale: [1, 1.1, 1],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                      }}
-                    />
-                    <div className="relative bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all duration-300">
+                    <div className="relative bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all">
                       <img
                         src={project.logo}
                         alt={project.name}
-                        className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform duration-300"
+                        className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
                       />
                       <h3 className="text-lg font-display font-bold text-white text-center mb-2 group-hover:text-primary transition-colors">
                         {project.name}
@@ -121,29 +139,18 @@ export function GTNOngoingProjects() {
                     </div>
                   </a>
                 ) : (
-                  <motion.div
-                    animate={{
-                      boxShadow: [
-                        "0 0 20px rgba(76, 175, 80, 0)",
-                        "0 0 40px rgba(76, 175, 80, 0.3)",
-                        "0 0 20px rgba(76, 175, 80, 0)",
-                      ],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                    }}
-                    className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all duration-300"
-                  >
+                  
+                  // NON-LINKED PROJECT CARD
+                  <div className="bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all">
                     <img
                       src={project.logo}
                       alt={project.name}
-                      className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform duration-300"
+                      className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
                     />
-                    <h3 className="text-lg font-display font-bold text-white text-center group-hover:text-primary transition-colors">
+                    <h3 className="text-lg font-display font-bold text-white text-center">
                       {project.name}
                     </h3>
-                  </motion.div>
+                  </div>
                 )}
               </motion.div>
             ))}

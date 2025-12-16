@@ -1,187 +1,200 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Trash2, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Trash2, Upload, Plus } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
-interface BlogPost {
-  id: string;
+interface Blog {
+  id: number;
   title: string;
   excerpt: string;
-  image: string;
-  date: string;
   author: string;
+  image_url: string | null;
 }
 
 export function BlogsManager() {
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
-    const saved = localStorage.getItem("gtn_blogs");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [author, setAuthor] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    excerpt: "",
-    author: "",
-    image: "",
-  });
-
-  const [previewImage, setPreviewImage] = useState<string>("");
+  // ------------------
+  // FETCH BLOGS
+  // ------------------
+  const fetchBlogs = async () => {
+    const res = await fetch(`${API_BASE}/blogs.php`);
+    const data = await res.json();
+    setBlogs(data || []);
+  };
 
   useEffect(() => {
-    localStorage.setItem("gtn_blogs", JSON.stringify(blogs));
-  }, [blogs]);
+    fetchBlogs();
+  }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setFormData(prev => ({ ...prev, image: base64 }));
-        setPreviewImage(base64);
-      };
-      reader.readAsDataURL(file);
+  // ------------------
+  // UPLOAD IMAGE
+  // ------------------
+  const uploadImage = async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+
+    const res = await fetch(`${API_BASE}/upload.php`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.error || "Upload failed");
+      return;
     }
+
+    setImageUrl(data.url);
   };
 
-  const handleAddBlog = () => {
-    if (formData.title && formData.excerpt && formData.author && formData.image) {
-      const newBlog: BlogPost = {
-        id: Date.now().toString(),
-        title: formData.title,
-        excerpt: formData.excerpt,
-        image: formData.image,
-        date: new Date().toISOString(),
-        author: formData.author,
-      };
-      setBlogs([newBlog, ...blogs]);
-      setFormData({ title: "", excerpt: "", author: "", image: "" });
-      setPreviewImage("");
+  // ------------------
+  // CREATE BLOG
+  // ------------------
+  const createBlog = async () => {
+    if (!title || !excerpt || !author) {
+      alert("All fields required");
+      return;
     }
+
+    setLoading(true);
+
+    const form = new FormData();
+    form.append("title", title);
+    form.append("excerpt", excerpt);
+    form.append("author", author);
+    if (imageUrl) form.append("image_url", imageUrl);
+
+    const res = await fetch(`${API_BASE}/blogs.php`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!data.success) {
+      alert(data.error || "Failed to create blog");
+      return;
+    }
+
+    setTitle("");
+    setExcerpt("");
+    setAuthor("");
+    setImageUrl(null);
+    fetchBlogs();
   };
 
-  const handleDeleteBlog = (id: string) => {
-    setBlogs(blogs.filter(blog => blog.id !== id));
+  // ------------------
+  // DELETE BLOG
+  // ------------------
+  const deleteBlog = async (id: number) => {
+    if (!confirm("Delete this blog?")) return;
+
+    const res = await fetch(`${API_BASE}/blogs.php`, {
+      method: "DELETE",
+      credentials: "include",
+      body: new URLSearchParams({ id: String(id) }),
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.error || "Delete failed");
+      return;
+    }
+
+    fetchBlogs();
   };
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-display font-bold text-white">Manage Blogs</h2>
-      </div>
+      <h1 className="text-2xl font-bold">Blogs Manager</h1>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card className="feature-card bg-card p-8">
-            <h3 className="text-xl font-bold text-white mb-6">Add New Blog Post</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Title</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  placeholder="Blog post title"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+      {/* CREATE */}
+      <div className="bg-white/5 p-6 rounded-lg border border-white/10 space-y-4">
+        <input
+          className="w-full p-2 bg-black border border-white/20 rounded"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Author</label>
-                <input
-                  type="text"
-                  value={formData.author}
-                  onChange={(e) => setFormData({...formData, author: e.target.value})}
-                  placeholder="Author name"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <textarea
+          className="w-full p-2 bg-black border border-white/20 rounded"
+          placeholder="Excerpt"
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Excerpt</label>
-                <textarea
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
-                  placeholder="Brief summary of the blog post"
-                  rows={4}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <input
+          className="w-full p-2 bg-black border border-white/20 rounded"
+          placeholder="Author"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Cover Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <div className="flex items-center gap-4">
+          <label className="cursor-pointer text-primary flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Upload Image
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                e.target.files && uploadImage(e.target.files[0])
+              }
+            />
+          </label>
 
-              <Button
-                onClick={handleAddBlog}
-                className="cta-button w-full h-12 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" /> Add Blog Post
-              </Button>
-            </div>
-          </Card>
+          {imageUrl && (
+            <img src={imageUrl} className="h-14 rounded bg-white" />
+          )}
         </div>
 
-        {/* Image Preview */}
-        {previewImage && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="lg:col-span-1"
+        <button
+          onClick={createBlog}
+          disabled={loading}
+          className="bg-primary text-black px-4 py-2 rounded flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {loading ? "Saving..." : "Add Blog"}
+        </button>
+      </div>
+
+      {/* LIST */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {blogs.map((b) => (
+          <div
+            key={b.id}
+            className="bg-white/5 border border-white/10 p-4 rounded space-y-2"
           >
-            <Card className="feature-card bg-card p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Preview</h3>
+            {b.image_url && (
               <img
-                src={previewImage}
-                alt="Preview"
-                className="w-full h-auto rounded-lg border border-white/10"
+                src={b.image_url}
+                className="h-32 w-full object-cover rounded"
               />
-            </Card>
-          </motion.div>
-        )}
-      </div>
+            )}
 
-      {/* Blogs List */}
-      <div>
-        <h3 className="text-xl font-bold text-white mb-6">All Blog Posts ({blogs.length})</h3>
-        <div className="space-y-4">
-          {blogs.map((blog) => (
-            <Card key={blog.id} className="feature-card bg-card p-6">
-              <div className="flex items-center justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-bold text-white mb-2 truncate">{blog.title}</h4>
-                  <p className="text-gray-400 text-sm mb-2 line-clamp-2">{blog.excerpt}</p>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span>By {blog.author}</span>
-                    <span>{new Date(blog.date).toLocaleDateString()}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <img
-                    src={blog.image}
-                    alt={blog.title}
-                    className="w-24 h-24 object-cover rounded-lg border border-white/10"
-                  />
-                  <button
-                    onClick={() => handleDeleteBlog(blog.id)}
-                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+            <h3 className="font-semibold">{b.title}</h3>
+            <p className="text-sm text-gray-400">{b.excerpt}</p>
+            <p className="text-xs text-gray-500">— {b.author}</p>
+
+            <button
+              onClick={() => deleteBlog(b.id)}
+              className="text-red-400 flex items-center gap-2 mt-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -10,16 +10,26 @@ import { GTNPlatforms } from "@/components/sections/gtn-platforms";
 import { GTNNetworkExpansion } from "@/components/sections/gtn-network-expansion";
 import { GTNSupportSystem } from "@/components/sections/gtn-support-system";
 import { GTNWhyChoose } from "@/components/sections/gtn-why-choose";
+import { GTNLeadGeneration } from "@/components/sections/LeadGeneration";
+import { GTNLeadBenefits } from "@/components/sections/GTNLeadBenefits";
 import { GTNBlog } from "@/components/sections/gtn-blog";
 import { GTNNews } from "@/components/sections/gtn-news";
 import { GTNJoin } from "@/components/sections/gtn-join";
 import { GTNCTA } from "@/components/sections/gtn-cta";
+import { GTNStats } from "@/components/sections/GTNStats";
+import { GTNSocialTab } from "@/components/sections/GTNSocialTab";
+import { GTNWhatsAppSupport } from "@/components/sections/GTNWhatsAppSupport";
+
 
 export default function GTNHome() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <GTNSocialTab />
+      <GTNWhatsAppSupport /> 
       <GTNNavbar />
       <GTNHero />
+      <GTNLeadBenefits />
+      <GTNStats />
       <GTNAbout />
       <GTNOngoingProjects />
       <GTNOngoingEvents />
@@ -28,6 +38,8 @@ export default function GTNHome() {
       <GTNIncomeProjects />
       <GTNPlatforms />
       <GTNNetworkExpansion />
+      <GTNLeadGeneration />
+
       <GTNSupportSystem />
       <GTNWhyChoose />
       <GTNBlog />
@@ -84,7 +96,7 @@ export default function GTNHome() {
 
           <div className="border-t border-white/10 pt-8">
             <p className="text-gray-400 text-sm text-center">
-              © 2024 GTN Global Team of Network. All Rights Reserved.<br />
+              © 2025 GTN Global Team of Network. All Rights Reserved.<br />
               <span className="text-primary font-semibold">Stronger Together. United We Grow.</span>
             </p>
           </div>

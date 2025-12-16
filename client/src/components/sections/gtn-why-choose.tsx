@@ -13,7 +13,7 @@ const reasons = [
 
 export function GTNWhyChoose() {
   return (
-    <section className="py-32 bg-gradient-to-b from-background to-background/80">
+    <section className="py-32 bg-linear-to-b from-background to-background/80">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -39,7 +39,7 @@ export function GTNWhyChoose() {
                 viewport={{ once: true }}
                 className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/10 hover:border-primary/50 transition-colors"
               >
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1">
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 mt-1">
                   <Check size={16} className="text-white" />
                 </div>
                 <p className="text-lg text-gray-300 font-medium">{reason}</p>

@@ -1,173 +1,194 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Trash2, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Trash2, Upload, Plus, Newspaper } from "lucide-react";
+import { API_BASE as API } from "@/lib/api";
 
 interface NewsItem {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  image: string;
-  date: string;
+  image_url: string | null;
 }
 
 export function NewsManager() {
-  const [news, setNews] = useState<NewsItem[]>(() => {
-    const saved = localStorage.getItem("gtn_news");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    image: "",
-  });
-
-  const [previewImage, setPreviewImage] = useState<string>("");
+  // ------------------
+  // FETCH NEWS
+  // ------------------
+  const fetchNews = async () => {
+    const res = await fetch(`${API}/news.php`);
+    const data = await res.json();
+    setNews(data || []);
+  };
 
   useEffect(() => {
-    localStorage.setItem("gtn_news", JSON.stringify(news));
-  }, [news]);
+    fetchNews();
+  }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setFormData(prev => ({ ...prev, image: base64 }));
-        setPreviewImage(base64);
-      };
-      reader.readAsDataURL(file);
+  // ------------------
+  // IMAGE UPLOAD
+  // ------------------
+  const uploadImage = async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+
+    const res = await fetch(`${API}/upload.php`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.error || "Upload failed");
+      return;
     }
+
+    setImageUrl(data.url);
   };
 
-  const handleAddNews = () => {
-    if (formData.title && formData.description && formData.image) {
-      const newNews: NewsItem = {
-        id: Date.now().toString(),
-        title: formData.title,
-        description: formData.description,
-        image: formData.image,
-        date: new Date().toISOString(),
-      };
-      setNews([newNews, ...news]);
-      setFormData({ title: "", description: "", image: "" });
-      setPreviewImage("");
+  // ------------------
+  // CREATE NEWS
+  // ------------------
+  const createNews = async () => {
+    if (!title || !description) {
+      alert("Title & description required");
+      return;
     }
+
+    setLoading(true);
+
+    const form = new FormData();
+    form.append("title", title);
+    form.append("description", description);
+    if (imageUrl) form.append("image_url", imageUrl);
+
+    const res = await fetch(`${API}/news.php`, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!data.success) {
+      alert(data.error || "Failed to create news");
+      return;
+    }
+
+    setTitle("");
+    setDescription("");
+    setImageUrl(null);
+    fetchNews();
   };
 
-  const handleDeleteNews = (id: string) => {
-    setNews(news.filter(item => item.id !== id));
+  // ------------------
+  // DELETE NEWS
+  // ------------------
+  const deleteNews = async (id: number) => {
+    if (!confirm("Delete this news item?")) return;
+
+    const res = await fetch(`${API}/news.php`, {
+      method: "DELETE",
+      credentials: "include",
+      body: new URLSearchParams({ id: String(id) }),
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.error || "Delete failed");
+      return;
+    }
+
+    fetchNews();
   };
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-display font-bold text-white">Manage News</h2>
-      </div>
+      <h1 className="text-2xl font-bold flex items-center gap-2">
+        <Newspaper className="w-6 h-6" /> News Manager
+      </h1>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card className="feature-card bg-card p-8">
-            <h3 className="text-xl font-bold text-white mb-6">Add News Update</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Title</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  placeholder="News headline"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+      {/* CREATE */}
+      <div className="bg-white/5 p-6 rounded border border-white/10 space-y-4">
+        <input
+          className="w-full p-2 bg-black border border-white/20 rounded"
+          placeholder="News title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Full news description"
-                  rows={5}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <textarea
+          className="w-full p-2 bg-black border border-white/20 rounded min-h-[120px]"
+          placeholder="News description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
 
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">Featured Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+        <div className="flex items-center gap-4">
+          <label className="cursor-pointer text-primary flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Upload Image
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                e.target.files && uploadImage(e.target.files[0])
+              }
+            />
+          </label>
 
-              <Button
-                onClick={handleAddNews}
-                className="cta-button w-full h-12 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" /> Publish News
-              </Button>
-            </div>
-          </Card>
+          {imageUrl && (
+            <img src={imageUrl} className="h-14 rounded bg-white" />
+          )}
         </div>
 
-        {/* Image Preview */}
-        {previewImage && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="lg:col-span-1"
+        <button
+          onClick={createNews}
+          disabled={loading}
+          className="bg-primary text-black px-4 py-2 rounded flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {loading ? "Saving..." : "Add News"}
+        </button>
+      </div>
+
+      {/* LIST */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {news.map((n) => (
+          <div
+            key={n.id}
+            className="bg-white/5 border border-white/10 p-4 rounded space-y-2"
           >
-            <Card className="feature-card bg-card p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Preview</h3>
+            {n.image_url && (
               <img
-                src={previewImage}
-                alt="Preview"
-                className="w-full h-auto rounded-lg border border-white/10"
+                src={n.image_url}
+                className="h-32 w-full object-cover rounded"
               />
-            </Card>
-          </motion.div>
-        )}
-      </div>
+            )}
 
-      {/* News List */}
-      <div>
-        <h3 className="text-xl font-bold text-white mb-6">All News ({news.length})</h3>
-        <div className="space-y-4">
-          {news.map((item) => (
-            <Card key={item.id} className="feature-card bg-card p-6">
-              <div className="flex items-center justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-bold text-white mb-2 truncate">{item.title}</h4>
-                  <p className="text-gray-400 text-sm mb-2 line-clamp-2">{item.description}</p>
-                  <div className="text-xs text-gray-500">
-                    {new Date(item.date).toLocaleDateString()}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-24 h-24 object-cover rounded-lg border border-white/10"
-                  />
-                  <button
-                    onClick={() => handleDeleteNews(item.id)}
-                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+            <h3 className="font-semibold">{n.title}</h3>
+            <p className="text-sm text-gray-400 line-clamp-4">
+              {n.description}
+            </p>
+
+            <button
+              onClick={() => deleteNews(n.id)}
+              className="text-red-400 flex items-center gap-2 mt-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
+  
