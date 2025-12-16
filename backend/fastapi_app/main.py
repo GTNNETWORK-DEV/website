@@ -5,6 +5,7 @@ import hashlib
 import secrets
 from pathlib import Path
 from typing import Optional, List
+from datetime import date
 
 from fastapi import (
     FastAPI,
@@ -34,6 +35,8 @@ if not DATABASE_URL:
 if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
+PG_SSLMODE = os.getenv("PGSSLMODE", "require")
+
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin@123")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-me")
@@ -45,7 +48,10 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 # --------------------
 # Database setup
 # --------------------
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"sslmode": PG_SSLMODE},
+)
 
 
 class Base(DeclarativeBase):
@@ -365,9 +371,16 @@ def create_event(
     db: Session = Depends(get_db),
     _: bool = Depends(require_admin),
 ):
+    event_date_value = None
+    if event_date:
+        try:
+            event_date_value = date.fromisoformat(event_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="event_date must be YYYY-MM-DD")
+
     event = Event(
         name=name.strip(),
-        event_date=event_date or None,
+        event_date=event_date_value,
         location=location,
         link=link,
         image_url=image_url,
