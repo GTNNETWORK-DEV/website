@@ -40,7 +40,9 @@ PG_SSLMODE = os.getenv("PGSSLMODE", "require")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin@123")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-me")
-default_origins = ["*", "https://gtnnetwork.com", "https://www.gtnnetwork.com",
+default_origins = [
+    "https://gtnnetwork.com",
+    "https://www.gtnnetwork.com",
     "https://website-chi-two-94.vercel.app",
     "http://localhost:3000",
     "http://localhost:5000",
@@ -249,23 +251,20 @@ async def add_cors_headers(request: Request, call_next):
     OPTIONS preflight requests return quickly.
     """
     origin = request.headers.get("origin")
-    allowed_origin = (
-        origin
-        if origin and ("*" in ALLOWED_ORIGINS or origin in ALLOWED_ORIGINS)
-        else "*"
-    )
+    is_allowed = origin in ALLOWED_ORIGINS if origin else False
 
     if request.method == "OPTIONS":
-        response = Response(status_code=200)
+        response = Response(status_code=200 if is_allowed else 403)
     else:
         response = await call_next(request)
 
-    response.headers["Access-Control-Allow-Origin"] = allowed_origin
-    if allowed_origin != "*":
+    if is_allowed:
+        response.headers["Access-Control-Allow-Origin"] = origin  # type: ignore[arg-type]
         response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    response.headers["Vary"] = "Origin"
 
     return response
 
