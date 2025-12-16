@@ -1,6 +1,6 @@
-fastapi==0.115.5
+﻿fastapi==0.115.5
 uvicorn[standard]==0.32.0
 SQLAlchemy==2.0.36
-psycopg[binary]==3.1.18
+psycopg[binary]==3.2.10
 python-dotenv==1.0.1
 python-multipart==0.0.17
