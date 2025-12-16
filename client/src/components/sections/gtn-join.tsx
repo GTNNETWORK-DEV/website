@@ -2,12 +2,60 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { User, Mail, Phone, MapPin, Building2, X } from "lucide-react";
 import { useState } from "react";
+import { API_BASE } from "@/lib/api";
 
 // ✅ IMPORT YOUR QR IMAGE
 import whatsappQR from "../../../../attached_assets/whatsapp-qr.png";
 
 export function GTNJoin() {
   const [showWhatsapp, setShowWhatsapp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    whatsapp: "",
+    country: "",
+    company: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setShowWhatsapp(false);
+    setLoading(true);
+
+    try {
+      if (!formData.fullName.trim()) {
+        throw new Error("Full name is required");
+      }
+
+      const body = new FormData();
+      body.append("full_name", formData.fullName.trim());
+      if (formData.email) body.append("email", formData.email.trim());
+      if (formData.whatsapp) body.append("whatsapp", formData.whatsapp.trim());
+      if (formData.country) body.append("country", formData.country.trim());
+      if (formData.company) body.append("company", formData.company.trim());
+
+      const res = await fetch(`${API_BASE}/join`, {
+        method: "POST",
+        body,
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const msg =
+          data?.detail || data?.error || data?.message || "Join request failed";
+        throw new Error(msg);
+      }
+
+      setShowWhatsapp(true);
+    } catch (err: any) {
+      setError(err?.message || "Join request failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section id="join" className="py-32 bg-background">
@@ -45,21 +93,51 @@ export function GTNJoin() {
 
           {/* FORM (STATIC UI ONLY) */}
           {!showWhatsapp && (
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <Input
+                label="Full Name"
+                icon={<User />}
+                value={formData.fullName}
+                onChange={(v) => setFormData({ ...formData, fullName: v })}
+                required
+              />
+              <Input
+                label="Email Address"
+                icon={<Mail />}
+                type="email"
+                value={formData.email}
+                onChange={(v) => setFormData({ ...formData, email: v })}
+              />
+              <Input
+                label="WhatsApp Number"
+                icon={<Phone />}
+                value={formData.whatsapp}
+                onChange={(v) => setFormData({ ...formData, whatsapp: v })}
+              />
+              <Input
+                label="Country"
+                icon={<MapPin />}
+                value={formData.country}
+                onChange={(v) => setFormData({ ...formData, country: v })}
+              />
+              <Input
+                label="Company (Optional)"
+                icon={<Building2 />}
+                value={formData.company}
+                onChange={(v) => setFormData({ ...formData, company: v })}
+              />
 
-              <Input label="Full Name" icon={<User />} />
-              <Input label="Email Address" icon={<Mail />} />
-              <Input label="WhatsApp Number" icon={<Phone />} />
-              <Input label="Country" icon={<MapPin />} />
-              <Input label="Company (Optional)" icon={<Building2 />} />
+              {error && (
+                <div className="text-red-400 text-sm">{error}</div>
+              )}
 
               {/* JOIN BUTTON */}
               <button
-                type="button"
-                onClick={() => setShowWhatsapp(true)}
-                className="w-full h-14 rounded-xl bg-[#21b754] text-white text-lg font-bold hover:brightness-110 transition"
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 rounded-xl bg-[#21b754] text-white text-lg font-bold hover:brightness-110 transition disabled:opacity-60"
               >
-                Join GTN Now
+                {loading ? "Submitting..." : "Join GTN Now"}
               </button>
             </form>
           )}
@@ -119,9 +197,17 @@ export function GTNJoin() {
 function Input({
   label,
   icon,
+  type = "text",
+  value,
+  onChange,
+  required = false,
 }: {
   label: string;
   icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (val: string) => void;
+  required?: boolean;
 }) {
   return (
     <div>
@@ -130,7 +216,11 @@ function Input({
         {label}
       </label>
       <input
+        type={type}
         placeholder={label}
+        value={value}
+        required={required}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#21b754]/40"
       />
     </div>
