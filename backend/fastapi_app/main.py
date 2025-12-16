@@ -248,14 +248,24 @@ async def add_cors_headers(request: Request, call_next):
     Ensure every response carries permissive CORS headers and that
     OPTIONS preflight requests return quickly.
     """
+    origin = request.headers.get("origin")
+    allowed_origin = (
+        origin
+        if origin and ("*" in ALLOWED_ORIGINS or origin in ALLOWED_ORIGINS)
+        else "*"
+    )
+
     if request.method == "OPTIONS":
         response = Response(status_code=200)
     else:
         response = await call_next(request)
 
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Origin"] = allowed_origin
+    if allowed_origin != "*":
+        response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Vary"] = "Origin"
 
     return response
 
