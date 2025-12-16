@@ -52,6 +52,8 @@ ALLOWED_ORIGINS = (
     if raw_origins
     else default_origins
 )
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() == "true"
+COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -266,8 +268,8 @@ async def login(request: Request, response: Response):
             token,
             max_age=SESSION_TTL_SECONDS,
             httponly=True,
-            secure=False,
-            samesite="lax",
+            secure=COOKIE_SECURE,
+            samesite=COOKIE_SAMESITE,
         )
         return {"success": True}
 
