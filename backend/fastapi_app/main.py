@@ -22,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy import String, Text, Date, DateTime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # --------------------
 # Environment
@@ -126,17 +126,16 @@ def get_db() -> Session:
 # Schemas
 # --------------------
 class ProjectOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     logo_url: Optional[str] = None
     link: Optional[str] = None
     created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
 
 class EventOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     event_date: Optional[date] = None
@@ -145,31 +144,24 @@ class EventOut(BaseModel):
     image_url: Optional[str] = None
     created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
 
 class NewsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
     description: str
     image_url: Optional[str] = None
     created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
 
 class BlogOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
     excerpt: str
     author: str
     image_url: Optional[str] = None
     created_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 # --------------------
