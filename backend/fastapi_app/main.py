@@ -40,7 +40,18 @@ PG_SSLMODE = os.getenv("PGSSLMODE", "require")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin@123")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-me")
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
+default_origins = [
+    "https://website-chi-two-94.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://localhost:5173",
+]
+raw_origins = os.getenv("ALLOWED_ORIGINS")
+ALLOWED_ORIGINS = (
+    [o.strip() for o in raw_origins.split(",") if o.strip()]
+    if raw_origins
+    else default_origins
+)
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -217,7 +228,7 @@ app = FastAPI(title="GTN FastAPI Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if ALLOWED_ORIGINS == "*" else ALLOWED_ORIGINS.split(","),
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
