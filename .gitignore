@@ -7,3 +7,7 @@ vite.config.ts.*
 .env
 .local/
 backend.zip
+backend/backend/.env
+__pycache__/
+.venv/
+uploads/
