@@ -5,7 +5,7 @@ import hashlib
 import secrets
 from pathlib import Path
 from typing import Optional, List
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import (
     FastAPI,
@@ -130,7 +130,7 @@ class ProjectOut(BaseModel):
     name: str
     logo_url: Optional[str] = None
     link: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -139,11 +139,11 @@ class ProjectOut(BaseModel):
 class EventOut(BaseModel):
     id: int
     name: str
-    event_date: Optional[str] = None
+    event_date: Optional[date] = None
     location: Optional[str] = None
     link: Optional[str] = None
     image_url: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -154,7 +154,7 @@ class NewsOut(BaseModel):
     title: str
     description: str
     image_url: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -166,7 +166,7 @@ class BlogOut(BaseModel):
     excerpt: str
     author: str
     image_url: Optional[str] = None
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
