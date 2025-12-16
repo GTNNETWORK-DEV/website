@@ -144,6 +144,35 @@ Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
+def ensure_join_columns() -> None:
+    """Ensure legacy join_requests table has expected columns."""
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS join_requests "
+                "ADD COLUMN IF NOT EXISTS whatsapp TEXT"
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS join_requests "
+                "ADD COLUMN IF NOT EXISTS country TEXT"
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS join_requests "
+                "ADD COLUMN IF NOT EXISTS company TEXT"
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS join_requests "
+                "ADD COLUMN IF NOT EXISTS email TEXT"
+            )
+        )
+
+
 def sync_sequences() -> None:
     """Ensure Postgres sequences are ahead of current max ids."""
     tables = ("projects", "events", "news", "blogs", "join_requests")
