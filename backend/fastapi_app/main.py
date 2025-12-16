@@ -531,6 +531,37 @@ def delete_blog(
     return {"success": True}
 
 
+# --------------------
+# Legacy .php route aliases (for compatibility with existing frontend bundles)
+# --------------------
+legacy_routes = [
+    ("POST", "/api/login.php", login),
+    ("POST", "/api/logout.php", logout),
+    ("GET", "/api/session.php", session),
+    ("POST", "/api/upload.php", upload_file),
+    ("GET", "/api/projects.php", get_projects),
+    ("POST", "/api/projects.php", create_project),
+    ("DELETE", "/api/projects.php", delete_project),
+    ("GET", "/api/events.php", get_events),
+    ("POST", "/api/events.php", create_event),
+    ("DELETE", "/api/events.php", delete_event),
+    ("GET", "/api/news.php", get_news),
+    ("POST", "/api/news.php", create_news),
+    ("DELETE", "/api/news.php", delete_news),
+    ("GET", "/api/blogs.php", get_blogs),
+    ("POST", "/api/blogs.php", create_blog),
+    ("DELETE", "/api/blogs.php", delete_blog),
+]
+
+for method, path, handler in legacy_routes:
+    app.add_api_route(
+        path,
+        handler,
+        methods=[method],
+        include_in_schema=False,
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
