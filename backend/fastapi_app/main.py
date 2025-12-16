@@ -30,6 +30,10 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is required for the FastAPI backend")
 
+# Prefer psycopg3 driver even if URL is provided without it
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin@123")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-me")
