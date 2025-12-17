@@ -45,6 +45,10 @@ export function GTNBlog() {
   }, [API_BASE]);
 
   const latestBlogs = blogs.slice(0, 9);
+  const itemBasisClass =
+    latestBlogs.length <= 2
+      ? "basis-[92%] sm:basis-[80%] md:basis-[65%] lg:basis-[60%]"
+      : "basis-[88%] sm:basis-[75%] md:basis-[60%] lg:basis-[45%]";
 
   useEffect(() => {
     if (!carouselApi || latestBlogs.length < 2) return;
@@ -149,7 +153,7 @@ export function GTNBlog() {
                 {latestBlogs.map((blog, index) => (
                   <CarouselItem
                     key={blog.id}
-                    className="pl-6 basis-[88%] sm:basis-[75%] md:basis-[60%] lg:basis-[45%]"
+                    className={`pl-6 ${itemBasisClass}`}
                   >
                     <Link
                       href={`/blogs#blog-${blog.id}`}

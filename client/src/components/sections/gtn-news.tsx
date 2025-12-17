@@ -45,6 +45,10 @@ export function GTNNews() {
   }, [API_BASE]);
 
   const latestNews = news.slice(0, 6);
+  const itemBasisClass =
+    latestNews.length <= 2
+      ? "basis-[92%] sm:basis-[80%] md:basis-[65%] lg:basis-[60%]"
+      : "basis-[88%] sm:basis-[75%] md:basis-[60%] lg:basis-[45%]";
 
   useEffect(() => {
     if (!carouselApi || latestNews.length < 2) return;
@@ -149,7 +153,7 @@ export function GTNNews() {
                 {latestNews.map((item, index) => (
                   <CarouselItem
                     key={item.id}
-                    className="pl-6 basis-[88%] sm:basis-[75%] md:basis-[60%] lg:basis-[45%]"
+                    className={`pl-6 ${itemBasisClass}`}
                   >
                     <Link
                       href={`/news#news-${item.id}`}
