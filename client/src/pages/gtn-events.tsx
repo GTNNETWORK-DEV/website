@@ -166,40 +166,30 @@ function EventCollage({ event }: { event: EventItem }) {
   }
 
   const collageImages = images.slice(0, 6);
-  const offsets = [
-    { rotate: -2, float: 8 },
-    { rotate: 2, float: -6 },
-    { rotate: -1, float: 10 },
-    { rotate: 1, float: -8 },
-    { rotate: -2, float: 6 },
-    { rotate: 2, float: -10 },
-  ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {collageImages.map((src, index) => {
-        const offset = offsets[index % offsets.length];
-        return (
-          <motion.div
-            key={`${src}-${index}`}
-            initial={{ opacity: 0, rotate: offset.rotate }}
-            animate={{ opacity: 1, y: [0, offset.float, 0] }}
-            transition={{
-              duration: 6 + index,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            whileHover={{ scale: 1.03 }}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg"
-          >
-            <img
-              src={src}
-              alt={`${event.name} collage ${index + 1}`}
-              className="w-full h-44 md:h-52 object-cover"
-            />
-          </motion.div>
-        );
-      })}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[130px] md:auto-rows-[150px]">
+      {collageImages.map((src, index) => (
+        <motion.div
+          key={`${src}-${index}`}
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: index * 0.04 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.02 }}
+          className={`overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg ${
+            index === 0
+              ? "col-span-2 row-span-2 min-h-[220px] md:min-h-[320px]"
+              : "col-span-1 row-span-1"
+          }`}
+        >
+          <img
+            src={src}
+            alt={`${event.name} collage ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+      ))}
     </div>
   );
 }

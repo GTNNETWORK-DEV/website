@@ -7,6 +7,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import GTNHome from "@/pages/gtn-home";
 import GTNEvents from "@/pages/gtn-events";
+import GTNNews from "@/pages/gtn-news";
+import GTNBlogs from "@/pages/gtn-blogs";
+import GTNProjects from "@/pages/gtn-projects";
 
 // ADMIN PAGES
 import AdminLogin from "@/pages/admin/login";
@@ -19,6 +22,9 @@ function Router() {
       {/* ================= PUBLIC ================= */}
       <Route path="/" component={GTNHome} />
       <Route path="/events" component={GTNEvents} />
+      <Route path="/news" component={GTNNews} />
+      <Route path="/blogs" component={GTNBlogs} />
+      <Route path="/projects" component={GTNProjects} />
 
       {/* ================= ADMIN ================= */}
       {/* both open login */}

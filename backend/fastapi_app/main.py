@@ -64,6 +64,7 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 UPLOAD_BASE_URL = os.getenv("UPLOAD_BASE_URL")
 MAX_EVENT_IMAGES = 30
+MAX_NEWS_IMAGES = 30
 
 # --------------------
 # Database setup
@@ -113,6 +114,7 @@ class News(Base):
     title: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(Text)
+    image_urls: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[DateTime]] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -202,6 +204,20 @@ def ensure_event_columns() -> None:
 ensure_event_columns()
 
 
+def ensure_news_columns() -> None:
+    """Ensure legacy news table has expected columns."""
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS news "
+                "ADD COLUMN IF NOT EXISTS image_urls TEXT"
+            )
+        )
+
+
+ensure_news_columns()
+
+
 def sync_sequences() -> None:
     """Ensure Postgres sequences are ahead of current max ids."""
     tables = ("projects", "events", "news", "blogs", "join_requests")
@@ -262,6 +278,7 @@ class NewsOut(BaseModel):
     title: str
     description: str
     image_url: Optional[str] = None
+    images: List[str] = Field(default_factory=list)
     created_at: Optional[datetime] = None
 
 
@@ -371,7 +388,7 @@ async def add_cors_headers(request: Request, call_next):
     else:
         response.headers["Access-Control-Allow-Origin"] = "*"
 
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
 
     return response
@@ -469,7 +486,14 @@ def form_or_query_id(id_form: Optional[int], id_query: Optional[int]) -> int:
     return int(id_val)
 
 
-def parse_event_images(image_urls: Optional[str]) -> List[str]:
+def clean_optional_text(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    cleaned = value.strip()
+    return cleaned if cleaned else None
+
+
+def parse_image_list(image_urls: Optional[str]) -> List[str]:
     if not image_urls:
         return []
 
@@ -491,7 +515,7 @@ def parse_event_images(image_urls: Optional[str]) -> List[str]:
 
 
 def serialize_event(event: Event) -> EventOut:
-    images = parse_event_images(event.image_urls)
+    images = parse_image_list(event.image_urls)
     if event.image_url and event.image_url not in images:
         images = [event.image_url, *images]
 
@@ -505,6 +529,21 @@ def serialize_event(event: Event) -> EventOut:
         image_url=event.image_url,
         images=images,
         created_at=event.created_at,
+    )
+
+
+def serialize_news(news_item: News) -> NewsOut:
+    images = parse_image_list(news_item.image_urls)
+    if news_item.image_url and news_item.image_url not in images:
+        images = [news_item.image_url, *images]
+
+    return NewsOut(
+        id=news_item.id,
+        title=news_item.title,
+        description=news_item.description,
+        image_url=news_item.image_url,
+        images=images,
+        created_at=news_item.created_at,
     )
 
 
@@ -525,6 +564,36 @@ def create_project(
 ):
     project = Project(name=name.strip(), logo_url=logo_url, link=link)
     db.add(project)
+    db.commit()
+    db.refresh(project)
+    return {"success": True, "project": ProjectOut.model_validate(project)}
+
+
+@app.put("/api/projects")
+def update_project(
+    id: int = Form(...),
+    name: Optional[str] = Form(None),
+    logo_url: Optional[str] = Form(None),
+    link: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    project = db.query(Project).filter(Project.id == id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if name is not None:
+        cleaned_name = name.strip()
+        if not cleaned_name:
+            raise HTTPException(status_code=400, detail="Project name is required")
+        project.name = cleaned_name
+
+    if logo_url is not None:
+        project.logo_url = clean_optional_text(logo_url)
+
+    if link is not None:
+        project.link = clean_optional_text(link)
+
     db.commit()
     db.refresh(project)
     return {"success": True, "project": ProjectOut.model_validate(project)}
@@ -571,8 +640,8 @@ def create_event(
         except ValueError:
             raise HTTPException(status_code=400, detail="event_date must be YYYY-MM-DD")
 
-    cleaned_image_url = image_url.strip() if image_url else None
-    images = parse_event_images(image_urls)
+    cleaned_image_url = clean_optional_text(image_url)
+    images = parse_image_list(image_urls)
     if cleaned_image_url and cleaned_image_url not in images:
         images.insert(0, cleaned_image_url)
 
@@ -600,6 +669,75 @@ def create_event(
     return {"success": True, "event": serialize_event(event)}
 
 
+@app.put("/api/events")
+def update_event(
+    id: int = Form(...),
+    name: Optional[str] = Form(None),
+    event_date: Optional[str] = Form(None),
+    location: Optional[str] = Form(None),
+    link: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    image_url: Optional[str] = Form(None),
+    image_urls: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    event = db.query(Event).filter(Event.id == id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    if name is not None:
+        cleaned_name = name.strip()
+        if not cleaned_name:
+            raise HTTPException(status_code=400, detail="Event name is required")
+        event.name = cleaned_name
+
+    if event_date is not None:
+        if event_date.strip():
+            try:
+                event.event_date = date.fromisoformat(event_date.strip())
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, detail="event_date must be YYYY-MM-DD"
+                )
+        else:
+            event.event_date = None
+
+    if location is not None:
+        event.location = clean_optional_text(location)
+
+    if link is not None:
+        event.link = clean_optional_text(link)
+
+    if description is not None:
+        event.description = clean_optional_text(description)
+
+    if image_urls is not None or image_url is not None:
+        existing_images = parse_image_list(event.image_urls)
+        cleaned_primary = clean_optional_text(image_url)
+
+        if image_urls is not None:
+            images = parse_image_list(image_urls)
+        else:
+            images = existing_images
+
+        if cleaned_primary and cleaned_primary not in images:
+            images.insert(0, cleaned_primary)
+
+        if len(images) > MAX_EVENT_IMAGES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Up to {MAX_EVENT_IMAGES} images are allowed per event",
+            )
+
+        event.image_urls = json.dumps(images) if images else None
+        event.image_url = cleaned_primary or (images[0] if images else None)
+
+    db.commit()
+    db.refresh(event)
+    return {"success": True, "event": serialize_event(event)}
+
+
 @app.delete("/api/events")
 def delete_event(
     id: Optional[int] = Form(None),
@@ -619,7 +757,7 @@ def delete_event(
 @app.get("/api/news", response_model=List[NewsOut])
 def get_news(db: Session = Depends(get_db)):
     news_items = db.query(News).order_by(News.created_at.desc()).all()
-    return news_items
+    return [serialize_news(item) for item in news_items]
 
 
 @app.post("/api/news")
@@ -627,18 +765,86 @@ def create_news(
     title: str = Form(...),
     description: str = Form(...),
     image_url: Optional[str] = Form(None),
+    image_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     _: bool = Depends(require_admin),
 ):
+    cleaned_image_url = clean_optional_text(image_url)
+    images = parse_image_list(image_urls)
+    if cleaned_image_url and cleaned_image_url not in images:
+        images.insert(0, cleaned_image_url)
+
+    if len(images) > MAX_NEWS_IMAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Up to {MAX_NEWS_IMAGES} images are allowed per news item",
+        )
+
+    images_json = json.dumps(images) if images else None
+    primary_image = cleaned_image_url or (images[0] if images else None)
+
     news_item = News(
         title=title.strip(),
         description=description.strip(),
-        image_url=image_url,
+        image_url=primary_image,
+        image_urls=images_json,
     )
     db.add(news_item)
     db.commit()
     db.refresh(news_item)
-    return {"success": True, "news": NewsOut.model_validate(news_item)}
+    return {"success": True, "news": serialize_news(news_item)}
+
+
+@app.put("/api/news")
+def update_news(
+    id: int = Form(...),
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    image_url: Optional[str] = Form(None),
+    image_urls: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    news_item = db.query(News).filter(News.id == id).first()
+    if not news_item:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if title is not None:
+        cleaned_title = title.strip()
+        if not cleaned_title:
+            raise HTTPException(status_code=400, detail="Title is required")
+        news_item.title = cleaned_title
+
+    if description is not None:
+        cleaned_description = description.strip()
+        if not cleaned_description:
+            raise HTTPException(status_code=400, detail="Description is required")
+        news_item.description = cleaned_description
+
+    if image_urls is not None or image_url is not None:
+        existing_images = parse_image_list(news_item.image_urls)
+        cleaned_primary = clean_optional_text(image_url)
+
+        if image_urls is not None:
+            images = parse_image_list(image_urls)
+        else:
+            images = existing_images
+
+        if cleaned_primary and cleaned_primary not in images:
+            images.insert(0, cleaned_primary)
+
+        if len(images) > MAX_NEWS_IMAGES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Up to {MAX_NEWS_IMAGES} images are allowed per news item",
+            )
+
+        news_item.image_urls = json.dumps(images) if images else None
+        news_item.image_url = cleaned_primary or (images[0] if images else None)
+
+    db.commit()
+    db.refresh(news_item)
+    return {"success": True, "news": serialize_news(news_item)}
 
 
 @app.delete("/api/news")
@@ -679,6 +885,46 @@ def create_blog(
         image_url=image_url,
     )
     db.add(blog)
+    db.commit()
+    db.refresh(blog)
+    return {"success": True, "blog": BlogOut.model_validate(blog)}
+
+
+@app.put("/api/blogs")
+def update_blog(
+    id: int = Form(...),
+    title: Optional[str] = Form(None),
+    excerpt: Optional[str] = Form(None),
+    author: Optional[str] = Form(None),
+    image_url: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    blog = db.query(Blog).filter(Blog.id == id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+
+    if title is not None:
+        cleaned_title = title.strip()
+        if not cleaned_title:
+            raise HTTPException(status_code=400, detail="Title is required")
+        blog.title = cleaned_title
+
+    if excerpt is not None:
+        cleaned_excerpt = excerpt.strip()
+        if not cleaned_excerpt:
+            raise HTTPException(status_code=400, detail="Excerpt is required")
+        blog.excerpt = cleaned_excerpt
+
+    if author is not None:
+        cleaned_author = author.strip()
+        if not cleaned_author:
+            raise HTTPException(status_code=400, detail="Author is required")
+        blog.author = cleaned_author
+
+    if image_url is not None:
+        blog.image_url = clean_optional_text(image_url)
+
     db.commit()
     db.refresh(blog)
     return {"success": True, "blog": BlogOut.model_validate(blog)}

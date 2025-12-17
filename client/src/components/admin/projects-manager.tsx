@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trash2, Plus, Upload } from "lucide-react";
+import { Trash2, Plus, Upload, Pencil, X } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 
 interface Project {
@@ -15,6 +15,7 @@ export function ProjectsManager() {
   const [link, setLink] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   // -----------------------
   // FETCH PROJECTS
@@ -88,6 +89,56 @@ export function ProjectsManager() {
     fetchProjects();
   };
 
+  const resetForm = () => {
+    setName("");
+    setLink("");
+    setLogoUrl(null);
+    setEditingId(null);
+  };
+
+  const startEdit = (project: Project) => {
+    setEditingId(project.id);
+    setName(project.name || "");
+    setLink(project.link || "");
+    setLogoUrl(project.logo_url || null);
+  };
+
+  // -----------------------
+  // UPDATE PROJECT
+  // -----------------------
+  const updateProject = async () => {
+    if (!editingId) return;
+    if (!name.trim()) {
+      alert("Project name required");
+      return;
+    }
+
+    setLoading(true);
+
+    const form = new FormData();
+    form.append("id", String(editingId));
+    form.append("name", name);
+    form.append("link", link);
+    form.append("logo_url", logoUrl || "");
+
+    const res = await fetch(`${API_BASE}/projects`, {
+      method: "PUT",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!data.success) {
+      alert(data.error || "Failed to update project");
+      return;
+    }
+
+    resetForm();
+    fetchProjects();
+  };
+
   // -----------------------
   // DELETE PROJECT
   // -----------------------
@@ -145,22 +196,47 @@ export function ProjectsManager() {
           </label>
 
           {logoUrl && (
-            <img
-              src={logoUrl}
-              alt="preview"
-              className="h-12 rounded bg-white"
-            />
+            <div className="flex items-center gap-2">
+              <img
+                src={logoUrl}
+                alt="preview"
+                className="h-12 rounded bg-white"
+              />
+              <button
+                type="button"
+                onClick={() => setLogoUrl(null)}
+                className="text-xs text-red-300 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" />
+                Remove
+              </button>
+            </div>
           )}
         </div>
 
-        <button
-          onClick={createProject}
-          disabled={loading}
-          className="px-4 py-2 bg-primary text-black rounded flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {loading ? "Saving..." : "Add Project"}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={editingId ? updateProject : createProject}
+            disabled={loading}
+            className="px-4 py-2 bg-primary text-black rounded flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {loading
+              ? "Saving..."
+              : editingId
+              ? "Update Project"
+              : "Add Project"}
+          </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="border border-white/20 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
 
       {/* PROJECT LIST */}
@@ -196,6 +272,15 @@ export function ProjectsManager() {
             >
               <Trash2 className="w-4 h-4" />
               Delete
+            </button>
+
+            <button
+              type="button"
+              onClick={() => startEdit(p)}
+              className="w-full text-primary flex items-center justify-center gap-2 text-sm"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit
             </button>
           </div>
         ))}

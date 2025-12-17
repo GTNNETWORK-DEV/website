@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trash2, Upload, Plus, CalendarDays, X } from "lucide-react";
+import { Trash2, Upload, Plus, CalendarDays, X, Pencil } from "lucide-react";
 import { API_BASE as API } from "@/lib/api";
 
 interface EventItem {
@@ -25,6 +25,7 @@ export function EventsManager() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   // ------------------
   // FETCH EVENTS
@@ -86,6 +87,32 @@ export function EventsManager() {
     setImageUrls((prev) => prev.filter((item) => item !== url));
   };
 
+  const resetForm = () => {
+    setName("");
+    setEventDate("");
+    setLocation("");
+    setLink("");
+    setDescription("");
+    setImageUrls([]);
+    setEditingId(null);
+  };
+
+  const startEdit = (event: EventItem) => {
+    setEditingId(event.id);
+    setName(event.name || "");
+    setEventDate(event.event_date || "");
+    setLocation(event.location || "");
+    setLink(event.link || "");
+    setDescription(event.description || "");
+    if (event.images && event.images.length > 0) {
+      setImageUrls(event.images);
+    } else if (event.image_url) {
+      setImageUrls([event.image_url]);
+    } else {
+      setImageUrls([]);
+    }
+  };
+
   // ------------------
   // CREATE EVENT
   // ------------------
@@ -121,12 +148,46 @@ export function EventsManager() {
       return;
     }
 
-    setName("");
-    setEventDate("");
-    setLocation("");
-    setLink("");
-    setDescription("");
-    setImageUrls([]);
+    resetForm();
+    fetchEvents();
+  };
+
+  // ------------------
+  // UPDATE EVENT
+  // ------------------
+  const updateEvent = async () => {
+    if (!editingId) return;
+    if (!name) {
+      alert("Event name is required");
+      return;
+    }
+
+    setLoading(true);
+
+    const form = new FormData();
+    form.append("id", String(editingId));
+    form.append("name", name);
+    form.append("event_date", eventDate);
+    form.append("location", location);
+    form.append("link", link);
+    form.append("description", description);
+    form.append("image_urls", JSON.stringify(imageUrls));
+
+    const res = await fetch(`${API}/events`, {
+      method: "PUT",
+      body: form,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!data.success) {
+      alert(data.error || "Failed to update event");
+      return;
+    }
+
+    resetForm();
     fetchEvents();
   };
 
@@ -232,14 +293,29 @@ export function EventsManager() {
           )}
         </div>
 
-        <button
-          onClick={createEvent}
-          disabled={loading || uploading}
-          className="bg-primary text-black px-4 py-2 rounded flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {loading ? "Saving..." : "Add Event"}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={editingId ? updateEvent : createEvent}
+            disabled={loading || uploading}
+            className="bg-primary text-black px-4 py-2 rounded flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {loading
+              ? "Saving..."
+              : editingId
+              ? "Update Event"
+              : "Add Event"}
+          </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="border border-white/20 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
 
       {/* LIST */}
@@ -297,6 +373,15 @@ export function EventsManager() {
             >
               <Trash2 className="w-4 h-4" />
               Delete
+            </button>
+
+            <button
+              type="button"
+              onClick={() => startEdit(e)}
+              className="text-primary flex items-center gap-2 text-sm"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit
             </button>
           </div>
         ))}

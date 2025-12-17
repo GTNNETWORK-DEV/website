@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api";
@@ -10,11 +10,12 @@ import {
 } from "@/components/ui/carousel";
 
 interface NewsItem {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  image_url?: string;
-  created_at?: string;
+  image_url?: string | null;
+  images?: string[];
+  created_at?: string | null;
 }
 
 export function GTNNews() {
@@ -135,14 +136,11 @@ export function GTNNews() {
                     >
                       <div className="grid md:grid-cols-3 gap-6 items-start">
                         {/* Image */}
-                        {item.image_url && (
+                        {getNewsImages(item).length > 0 && (
                           <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
-                            <motion.img
-                              src={item.image_url}
+                            <NewsImageRotator
+                              images={getNewsImages(item)}
                               alt={item.title}
-                              className="w-full h-full object-cover"
-                              whileHover={{ scale: 1.1 }}
-                              transition={{ duration: 0.4 }}
                             />
                           </div>
                         )}
@@ -174,5 +172,53 @@ export function GTNNews() {
         )}
       </div>
     </section>
+  );
+}
+
+function getNewsImages(item: NewsItem) {
+  if (item.images && item.images.length > 0) {
+    return item.images;
+  }
+  if (item.image_url) {
+    return [item.image_url];
+  }
+  return [];
+}
+
+function NewsImageRotator({
+  images,
+  alt,
+}: {
+  images: string[];
+  alt: string;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length < 2) return;
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % images.length);
+    }, 5200);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  return (
+    <div className="relative w-full h-full">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={`${images[activeIndex]}-${activeIndex}`}
+          src={images[activeIndex]}
+          alt={alt}
+          className="absolute inset-0 w-full h-full object-cover"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.1 }}
+          whileHover={{ scale: 1.1 }}
+        />
+      </AnimatePresence>
+    </div>
   );
 }
