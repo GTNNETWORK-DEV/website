@@ -25,9 +25,15 @@ import {
   Zap,
   ExternalLink,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 interface Project {
   logo: string | undefined;
@@ -40,6 +46,8 @@ interface Project {
 export function GTNOngoingProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const emptyMessages = [
     { text: "Evaluating prospects", icon: Radar },
     { text: "Inspecting variables", icon: ScanLine },
@@ -100,6 +108,30 @@ export function GTNOngoingProjects() {
     return () => clearInterval(interval);
   }, [loading, projects.length, emptyMessages.length]);
 
+  useEffect(() => {
+    if (!carouselApi || projects.length < 2) return;
+
+    const interval = setInterval(() => {
+      carouselApi.scrollNext();
+    }, 6500);
+
+    return () => clearInterval(interval);
+  }, [carouselApi, projects.length]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => {
+      setActiveIndex(carouselApi.selectedScrollSnap());
+    };
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+    return () => {
+      carouselApi.off("select", onSelect);
+      carouselApi.off("reInit", onSelect);
+    };
+  }, [carouselApi]);
+
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -118,13 +150,6 @@ export function GTNOngoingProjects() {
       y: 0,
       transition: { duration: 0.4 },
     },
-  };
-
-  const getJustifyClass = () => {
-    if (projects.length === 1) return "justify-center";
-    if (projects.length === 2) return "justify-center gap-12";
-    if (projects.length === 3) return "justify-center gap-8";
-    return "justify-center gap-6";
   };
 
   return (
@@ -184,63 +209,118 @@ export function GTNOngoingProjects() {
             </div>
           </motion.div>
         ) : (
-          
-          // PROJECT GRID
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            className={`flex flex-wrap items-center ${getJustifyClass()} max-w-6xl mx-auto`}
+            className="max-w-6xl mx-auto"
           >
-            {projects.map((project) => (
-              <motion.div
-                key={project.id}
-                variants={itemVariants}
-                whileHover={{ y: -8, scale: 1.05 }}
-                className="group"
+            <Carousel
+              opts={{ align: "start", loop: projects.length > 1 }}
+              setApi={setCarouselApi}
+              className="relative"
+              style={{ perspective: "1200px" }}
+            >
+              <CarouselContent
+                className="-ml-6 py-6"
+                containerClassName="overflow-visible"
               >
-                {project.link ? (
-                  
-                  // LINKED PROJECT CARD
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block relative"
+                {projects.map((project, index) => (
+                  <CarouselItem
+                    key={project.id}
+                    className="pl-6 md:basis-1/2 lg:basis-1/3"
                   >
-                    <div className="relative bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all">
-                      <img
-                        src={resolveMediaUrl(project.logo)}
-                        alt={project.name}
-                        className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
-                      />
-                      <h3 className="text-lg font-display font-bold text-white text-center mb-2 group-hover:text-primary transition-colors">
-                        {project.name}
-                      </h3>
-                      <div className="flex items-center justify-center gap-2 text-primary text-sm font-semibold">
-                        Visit <ExternalLink className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </a>
-                ) : (
-                  
-                  // NON-LINKED PROJECT CARD
-                  <div className="bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all">
-                    <img
-                      src={resolveMediaUrl(project.logo)}
-                      alt={project.name}
-                      className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
-                    />
-                    <h3 className="text-lg font-display font-bold text-white text-center">
-                      {project.name}
-                    </h3>
-                  </div>
-                )}
-              </motion.div>
-            ))}
+                    <motion.div variants={itemVariants} className="h-full">
+                      <CarouselDepthItem
+                        index={index}
+                        total={projects.length}
+                        activeIndex={activeIndex}
+                      >
+                        {project.link ? (
+                          <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block h-full"
+                          >
+                            <div className="relative bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all h-full flex flex-col items-center">
+                              <img
+                                src={resolveMediaUrl(project.logo)}
+                                alt={project.name}
+                                className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
+                              />
+                              <h3 className="text-lg font-display font-bold text-white text-center mb-2 group-hover:text-primary transition-colors">
+                                {project.name}
+                              </h3>
+                              <div className="flex items-center justify-center gap-2 text-primary text-sm font-semibold mt-auto">
+                                Visit <ExternalLink className="w-4 h-4" />
+                              </div>
+                            </div>
+                          </a>
+                        ) : (
+                          <div className="bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all h-full flex flex-col items-center">
+                            <img
+                              src={resolveMediaUrl(project.logo)}
+                              alt={project.name}
+                              className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
+                            />
+                            <h3 className="text-lg font-display font-bold text-white text-center">
+                              {project.name}
+                            </h3>
+                          </div>
+                        )}
+                      </CarouselDepthItem>
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </motion.div>
         )}
       </div>
     </section>
   );
+}
+
+function CarouselDepthItem({
+  children,
+  index,
+  total,
+  activeIndex,
+}: {
+  children: ReactNode;
+  index: number;
+  total: number;
+  activeIndex: number;
+}) {
+  const delta = getCarouselDelta(index, activeIndex, total);
+  const depth = Math.min(Math.abs(delta), 3);
+  const scale = 1 - depth * 0.06;
+  const opacity = depth === 0 ? 1 : depth === 1 ? 0.7 : 0.5;
+  const translateY = depth * 10;
+  const rotateY = delta * -10;
+  const translateZ = depth * -40;
+
+  return (
+    <div
+      className="h-full transition-[transform,opacity] duration-700 ease-out will-change-transform"
+      style={{
+        transform: `translateY(${translateY}px) translateZ(${translateZ}px) scale(${scale}) rotateY(${rotateY}deg)`,
+        opacity,
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function getCarouselDelta(index: number, activeIndex: number, total: number) {
+  let delta = index - activeIndex;
+  if (total > 0) {
+    const half = total / 2;
+    if (delta > half) delta -= total;
+    if (delta < -half) delta += total;
+  }
+  return delta;
 }

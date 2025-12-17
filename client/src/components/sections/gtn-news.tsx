@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { API_BASE } from "@/lib/api";
 import {
   Carousel,
@@ -24,6 +24,7 @@ export function GTNNews() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // 🔥 API CALL (THIS WAS MISSING)
   useEffect(() => {
@@ -54,6 +55,20 @@ export function GTNNews() {
 
     return () => clearInterval(interval);
   }, [carouselApi, latestNews.length]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => {
+      setActiveIndex(carouselApi.selectedScrollSnap());
+    };
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+    return () => {
+      carouselApi.off("select", onSelect);
+      carouselApi.off("reInit", onSelect);
+    };
+  }, [carouselApi]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -124,9 +139,14 @@ export function GTNNews() {
             <Carousel
               opts={{ align: "start", loop: latestNews.length > 1 }}
               setApi={setCarouselApi}
+              className="relative"
+              style={{ perspective: "1200px" }}
             >
-              <CarouselContent className="-ml-6">
-                {latestNews.map((item) => (
+              <CarouselContent
+                className="-ml-6 py-6"
+                containerClassName="overflow-visible"
+              >
+                {latestNews.map((item, index) => (
                   <CarouselItem
                     key={item.id}
                     className="pl-6 md:basis-1/2"
@@ -135,40 +155,44 @@ export function GTNNews() {
                       href={`/news#news-${item.id}`}
                       className="block h-full"
                     >
-                      <motion.div
-                        variants={itemVariants}
-                        whileHover={{ y: -8 }}
-                        className="feature-card bg-card p-6 rounded-xl"
-                      >
-                        <div className="grid md:grid-cols-3 gap-6 items-start">
-                          {/* Image */}
-                          {getNewsImages(item).length > 0 && (
-                            <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
-                              <NewsImageRotator
-                                images={getNewsImages(item)}
-                                alt={item.title}
-                              />
-                            </div>
-                          )}
+                      <motion.div variants={itemVariants} className="h-full">
+                        <CarouselDepthItem
+                          index={index}
+                          total={latestNews.length}
+                          activeIndex={activeIndex}
+                        >
+                          <div className="feature-card bg-card p-6 rounded-xl">
+                            <div className="grid md:grid-cols-3 gap-6 items-start">
+                              {/* Image */}
+                              {getNewsImages(item).length > 0 && (
+                                <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
+                                  <NewsImageRotator
+                                    images={getNewsImages(item)}
+                                    alt={item.title}
+                                  />
+                                </div>
+                              )}
 
-                          {/* Content */}
-                          <div className="md:col-span-2">
-                            <h3 className="text-2xl font-display font-bold text-white mb-3 line-clamp-2">
-                              {item.title}
-                            </h3>
+                              {/* Content */}
+                              <div className="md:col-span-2">
+                                <h3 className="text-2xl font-display font-bold text-white mb-3 line-clamp-2">
+                                  {item.title}
+                                </h3>
 
-                            <p className="text-gray-400 text-sm mb-4 line-clamp-3">
-                              {item.description}
-                            </p>
+                                <p className="text-gray-400 text-sm mb-4 line-clamp-3">
+                                  {item.description}
+                                </p>
 
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <Clock className="w-4 h-4" />
-                              {item.created_at
-                                ? new Date(item.created_at).toLocaleDateString()
-                                : ""}
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  <Clock className="w-4 h-4" />
+                                  {item.created_at
+                                    ? new Date(item.created_at).toLocaleDateString()
+                                    : ""}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </CarouselDepthItem>
                       </motion.div>
                     </Link>
                   </CarouselItem>
@@ -180,6 +204,49 @@ export function GTNNews() {
       </div>
     </section>
   );
+}
+
+function CarouselDepthItem({
+  children,
+  index,
+  total,
+  activeIndex,
+}: {
+  children: ReactNode;
+  index: number;
+  total: number;
+  activeIndex: number;
+}) {
+  const delta = getCarouselDelta(index, activeIndex, total);
+  const depth = Math.min(Math.abs(delta), 3);
+  const scale = 1 - depth * 0.06;
+  const opacity = depth === 0 ? 1 : depth === 1 ? 0.7 : 0.5;
+  const translateY = depth * 10;
+  const rotateY = delta * -10;
+  const translateZ = depth * -40;
+
+  return (
+    <div
+      className="h-full transition-[transform,opacity] duration-700 ease-out will-change-transform"
+      style={{
+        transform: `translateY(${translateY}px) translateZ(${translateZ}px) scale(${scale}) rotateY(${rotateY}deg)`,
+        opacity,
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function getCarouselDelta(index: number, activeIndex: number, total: number) {
+  let delta = index - activeIndex;
+  if (total > 0) {
+    const half = total / 2;
+    if (delta > half) delta -= total;
+    if (delta < -half) delta += total;
+  }
+  return delta;
 }
 
 function getNewsImages(item: NewsItem) {

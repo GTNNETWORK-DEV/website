@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, Calendar as CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { API_BASE } from "@/lib/api";
 import {
   Carousel,
@@ -26,6 +26,7 @@ export function GTNOngoingEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // 🔥 THIS IS THE MISSING PART (API CALL)
   useEffect(() => {
@@ -54,6 +55,20 @@ export function GTNOngoingEvents() {
 
     return () => clearInterval(interval);
   }, [carouselApi, events.length]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => {
+      setActiveIndex(carouselApi.selectedScrollSnap());
+    };
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+    return () => {
+      carouselApi.off("select", onSelect);
+      carouselApi.off("reInit", onSelect);
+    };
+  }, [carouselApi]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -125,24 +140,31 @@ export function GTNOngoingEvents() {
             <Carousel
               opts={{ align: "start", loop: events.length > 1 }}
               setApi={setCarouselApi}
+              className="relative"
+              style={{ perspective: "1200px" }}
             >
-              <CarouselContent className="-ml-6">
-                {events.map((event) => (
+              <CarouselContent
+                className="-ml-6 py-6"
+                containerClassName="overflow-visible"
+              >
+                {events.map((event, index) => (
                   <CarouselItem
                     key={event.id}
                     className="pl-6 md:basis-1/2 lg:basis-1/3"
                   >
-                    <motion.div
-                      variants={itemVariants}
-                      whileHover={{ y: -8, scale: 1.03 }}
-                      className="group h-full"
-                    >
-                      <Link
-                        href={`/events#event-${event.id}`}
-                        className="block h-full"
+                    <motion.div variants={itemVariants} className="h-full">
+                      <CarouselDepthItem
+                        index={index}
+                        total={events.length}
+                        activeIndex={activeIndex}
                       >
-                        <EventCard event={event} />
-                      </Link>
+                        <Link
+                          href={`/events#event-${event.id}`}
+                          className="block h-full"
+                        >
+                          <EventCard event={event} />
+                        </Link>
+                      </CarouselDepthItem>
                     </motion.div>
                   </CarouselItem>
                 ))}
@@ -153,6 +175,49 @@ export function GTNOngoingEvents() {
       </div>
     </section>
   );
+}
+
+function CarouselDepthItem({
+  children,
+  index,
+  total,
+  activeIndex,
+}: {
+  children: ReactNode;
+  index: number;
+  total: number;
+  activeIndex: number;
+}) {
+  const delta = getCarouselDelta(index, activeIndex, total);
+  const depth = Math.min(Math.abs(delta), 3);
+  const scale = 1 - depth * 0.06;
+  const opacity = depth === 0 ? 1 : depth === 1 ? 0.7 : 0.5;
+  const translateY = depth * 10;
+  const rotateY = delta * -10;
+  const translateZ = depth * -40;
+
+  return (
+    <div
+      className="h-full transition-[transform,opacity] duration-700 ease-out will-change-transform"
+      style={{
+        transform: `translateY(${translateY}px) translateZ(${translateZ}px) scale(${scale}) rotateY(${rotateY}deg)`,
+        opacity,
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function getCarouselDelta(index: number, activeIndex: number, total: number) {
+  let delta = index - activeIndex;
+  if (total > 0) {
+    const half = total / 2;
+    if (delta > half) delta -= total;
+    if (delta < -half) delta += total;
+  }
+  return delta;
 }
 
 /* =========================

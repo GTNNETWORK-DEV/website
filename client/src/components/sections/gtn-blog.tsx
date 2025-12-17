@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { API_BASE } from "@/lib/api";
 import {
   Carousel,
@@ -24,6 +24,7 @@ export function GTNBlog() {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // 🔥 API CALL (THIS WAS MISSING)
   useEffect(() => {
@@ -54,6 +55,20 @@ export function GTNBlog() {
 
     return () => clearInterval(interval);
   }, [carouselApi, latestBlogs.length]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => {
+      setActiveIndex(carouselApi.selectedScrollSnap());
+    };
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+    return () => {
+      carouselApi.off("select", onSelect);
+      carouselApi.off("reInit", onSelect);
+    };
+  }, [carouselApi]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -124,9 +139,14 @@ export function GTNBlog() {
             <Carousel
               opts={{ align: "start", loop: latestBlogs.length > 1 }}
               setApi={setCarouselApi}
+              className="relative"
+              style={{ perspective: "1200px" }}
             >
-              <CarouselContent className="-ml-6">
-                {latestBlogs.map((blog) => (
+              <CarouselContent
+                className="-ml-6 py-6"
+                containerClassName="overflow-visible"
+              >
+                {latestBlogs.map((blog, index) => (
                   <CarouselItem
                     key={blog.id}
                     className="pl-6 md:basis-1/2 lg:basis-1/3"
@@ -135,42 +155,46 @@ export function GTNBlog() {
                       href={`/blogs#blog-${blog.id}`}
                       className="block h-full"
                     >
-                      <motion.div
-                        variants={itemVariants}
-                        whileHover={{ y: -8 }}
-                        className="feature-card bg-card p-6 rounded-xl"
-                      >
-                        {blog.image_url && (
-                          <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
-                            <motion.img
-                              src={resolveMediaUrl(blog.image_url)}
-                              alt={blog.title}
-                              className="w-full h-full object-cover"
-                              whileHover={{ scale: 1.1 }}
-                              transition={{ duration: 0.4 }}
-                            />
+                      <motion.div variants={itemVariants} className="h-full">
+                        <CarouselDepthItem
+                          index={index}
+                          total={latestBlogs.length}
+                          activeIndex={activeIndex}
+                        >
+                          <div className="feature-card bg-card p-6 rounded-xl">
+                            {blog.image_url && (
+                              <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
+                                <motion.img
+                                  src={resolveMediaUrl(blog.image_url)}
+                                  alt={blog.title}
+                                  className="w-full h-full object-cover"
+                                  whileHover={{ scale: 1.1 }}
+                                  transition={{ duration: 0.4 }}
+                                />
+                              </div>
+                            )}
+
+                            <h3 className="text-xl font-display font-bold text-white mb-2 line-clamp-2">
+                              {blog.title}
+                            </h3>
+
+                            <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                              {blog.excerpt}
+                            </p>
+
+                            <div className="flex items-center justify-between text-xs text-gray-500">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                {blog.created_at
+                                  ? new Date(blog.created_at).toLocaleDateString()
+                                  : ""}
+                              </div>
+                              <span className="text-primary font-semibold">
+                                {blog.author}
+                              </span>
+                            </div>
                           </div>
-                        )}
-
-                        <h3 className="text-xl font-display font-bold text-white mb-2 line-clamp-2">
-                          {blog.title}
-                        </h3>
-
-                        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                          {blog.excerpt}
-                        </p>
-
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            {blog.created_at
-                              ? new Date(blog.created_at).toLocaleDateString()
-                              : ""}
-                          </div>
-                          <span className="text-primary font-semibold">
-                            {blog.author}
-                          </span>
-                        </div>
+                        </CarouselDepthItem>
                       </motion.div>
                     </Link>
                   </CarouselItem>
@@ -182,4 +206,47 @@ export function GTNBlog() {
       </div>
     </section>
   );
+}
+
+function CarouselDepthItem({
+  children,
+  index,
+  total,
+  activeIndex,
+}: {
+  children: ReactNode;
+  index: number;
+  total: number;
+  activeIndex: number;
+}) {
+  const delta = getCarouselDelta(index, activeIndex, total);
+  const depth = Math.min(Math.abs(delta), 3);
+  const scale = 1 - depth * 0.06;
+  const opacity = depth === 0 ? 1 : depth === 1 ? 0.7 : 0.5;
+  const translateY = depth * 10;
+  const rotateY = delta * -10;
+  const translateZ = depth * -40;
+
+  return (
+    <div
+      className="h-full transition-[transform,opacity] duration-700 ease-out will-change-transform"
+      style={{
+        transform: `translateY(${translateY}px) translateZ(${translateZ}px) scale(${scale}) rotateY(${rotateY}deg)`,
+        opacity,
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function getCarouselDelta(index: number, activeIndex: number, total: number) {
+  let delta = index - activeIndex;
+  if (total > 0) {
+    const half = total / 2;
+    if (delta > half) delta -= total;
+    if (delta < -half) delta += total;
+  }
+  return delta;
 }
