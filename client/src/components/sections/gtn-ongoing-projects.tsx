@@ -95,7 +95,7 @@ export function GTNOngoingProjects() {
 
     const interval = setInterval(() => {
       setEmptyIndex((prev) => (prev + 1) % emptyMessages.length);
-    }, 2200);
+    }, 4200);
 
     return () => clearInterval(interval);
   }, [loading, projects.length, emptyMessages.length]);
@@ -161,7 +161,7 @@ export function GTNOngoingProjects() {
             <motion.div
               className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5"
               animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
             >
               {(() => {
                 const ActiveIcon = emptyMessages[emptyIndex].icon;
@@ -171,7 +171,7 @@ export function GTNOngoingProjects() {
             <motion.p
               className="text-gray-300 text-lg font-medium"
               animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
             >
               {emptyMessages[emptyIndex].text}...
             </motion.p>
@@ -179,7 +179,7 @@ export function GTNOngoingProjects() {
               <motion.div
                 className="h-full w-1/2 bg-primary"
                 animate={{ x: ["-100%", "100%"] }}
-                transition={{ duration: 2.6, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 3.6, repeat: Infinity, ease: "linear" }}
               />
             </div>
           </motion.div>

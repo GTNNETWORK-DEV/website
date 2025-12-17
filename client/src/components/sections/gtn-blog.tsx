@@ -9,6 +9,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { resolveMediaUrl } from "@/lib/media";
+import { Link } from "wouter";
 
 interface BlogPost {
   id: string;
@@ -130,43 +131,48 @@ export function GTNBlog() {
                     key={blog.id}
                     className="pl-6 md:basis-1/2 lg:basis-1/3"
                   >
-                    <motion.div
-                      variants={itemVariants}
-                      whileHover={{ y: -8 }}
-                      className="feature-card bg-card p-6 rounded-xl"
+                    <Link
+                      href={`/blogs#blog-${blog.id}`}
+                      className="block h-full"
                     >
-                      {blog.image_url && (
-                        <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
-                          <motion.img
-                            src={resolveMediaUrl(blog.image_url)}
-                            alt={blog.title}
-                            className="w-full h-full object-cover"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ duration: 0.4 }}
-                          />
+                      <motion.div
+                        variants={itemVariants}
+                        whileHover={{ y: -8 }}
+                        className="feature-card bg-card p-6 rounded-xl"
+                      >
+                        {blog.image_url && (
+                          <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
+                            <motion.img
+                              src={resolveMediaUrl(blog.image_url)}
+                              alt={blog.title}
+                              className="w-full h-full object-cover"
+                              whileHover={{ scale: 1.1 }}
+                              transition={{ duration: 0.4 }}
+                            />
+                          </div>
+                        )}
+
+                        <h3 className="text-xl font-display font-bold text-white mb-2 line-clamp-2">
+                          {blog.title}
+                        </h3>
+
+                        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                          {blog.excerpt}
+                        </p>
+
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            {blog.created_at
+                              ? new Date(blog.created_at).toLocaleDateString()
+                              : ""}
+                          </div>
+                          <span className="text-primary font-semibold">
+                            {blog.author}
+                          </span>
                         </div>
-                      )}
-
-                      <h3 className="text-xl font-display font-bold text-white mb-2 line-clamp-2">
-                        {blog.title}
-                      </h3>
-
-                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                        {blog.excerpt}
-                      </p>
-
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          {blog.created_at
-                            ? new Date(blog.created_at).toLocaleDateString()
-                            : ""}
-                        </div>
-                        <span className="text-primary font-semibold">
-                          {blog.author}
-                        </span>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>

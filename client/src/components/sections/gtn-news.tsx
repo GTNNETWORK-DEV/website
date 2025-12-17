@@ -9,6 +9,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { resolveMediaUrl } from "@/lib/media";
+import { Link } from "wouter";
 
 interface NewsItem {
   id: number;
@@ -130,41 +131,46 @@ export function GTNNews() {
                     key={item.id}
                     className="pl-6 md:basis-1/2"
                   >
-                    <motion.div
-                      variants={itemVariants}
-                      whileHover={{ y: -8 }}
-                      className="feature-card bg-card p-6 rounded-xl"
+                    <Link
+                      href={`/news#news-${item.id}`}
+                      className="block h-full"
                     >
-                      <div className="grid md:grid-cols-3 gap-6 items-start">
-                        {/* Image */}
-                        {getNewsImages(item).length > 0 && (
-                          <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
-                            <NewsImageRotator
-                              images={getNewsImages(item)}
-                              alt={item.title}
-                            />
-                          </div>
-                        )}
+                      <motion.div
+                        variants={itemVariants}
+                        whileHover={{ y: -8 }}
+                        className="feature-card bg-card p-6 rounded-xl"
+                      >
+                        <div className="grid md:grid-cols-3 gap-6 items-start">
+                          {/* Image */}
+                          {getNewsImages(item).length > 0 && (
+                            <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
+                              <NewsImageRotator
+                                images={getNewsImages(item)}
+                                alt={item.title}
+                              />
+                            </div>
+                          )}
 
-                        {/* Content */}
-                        <div className="md:col-span-2">
-                          <h3 className="text-2xl font-display font-bold text-white mb-3 line-clamp-2">
-                            {item.title}
-                          </h3>
+                          {/* Content */}
+                          <div className="md:col-span-2">
+                            <h3 className="text-2xl font-display font-bold text-white mb-3 line-clamp-2">
+                              {item.title}
+                            </h3>
 
-                          <p className="text-gray-400 text-sm mb-4 line-clamp-3">
-                            {item.description}
-                          </p>
+                            <p className="text-gray-400 text-sm mb-4 line-clamp-3">
+                              {item.description}
+                            </p>
 
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Clock className="w-4 h-4" />
-                            {item.created_at
-                              ? new Date(item.created_at).toLocaleDateString()
-                              : ""}
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Clock className="w-4 h-4" />
+                              {item.created_at
+                                ? new Date(item.created_at).toLocaleDateString()
+                                : ""}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>

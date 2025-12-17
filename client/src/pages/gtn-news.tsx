@@ -35,6 +35,25 @@ export default function GTNNewsPage() {
       });
   }, [API_BASE]);
 
+  useEffect(() => {
+    if (loading) return;
+
+    const scrollToHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (!hash) return;
+      const target = document.getElementById(hash);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    const handleHashChange = () => scrollToHash();
+    scrollToHash();
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [loading, news.length]);
+
   return (
     <section className="py-20 bg-linear-to-b from-background to-background/80">
       <div className="container mx-auto px-4">
@@ -71,6 +90,7 @@ export default function GTNNewsPage() {
               return (
                 <motion.article
                   key={item.id}
+                  id={`news-${item.id}`}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.04 }}
