@@ -51,7 +51,7 @@ export function GTNNews() {
 
     const interval = setInterval(() => {
       carouselApi.scrollNext();
-    }, 6500);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [carouselApi, latestNews.length]);

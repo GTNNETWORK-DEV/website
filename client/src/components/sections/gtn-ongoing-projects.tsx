@@ -113,7 +113,7 @@ export function GTNOngoingProjects() {
 
     const interval = setInterval(() => {
       carouselApi.scrollNext();
-    }, 6500);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [carouselApi, projects.length]);
