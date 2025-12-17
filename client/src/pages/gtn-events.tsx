@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { Link } from "wouter";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface EventItem {
   id: number;
@@ -156,8 +157,11 @@ function EventCollage({ event }: { event: EventItem }) {
       : event.image_url
       ? [event.image_url]
       : [];
+  const resolvedImages = images
+    .map((image) => resolveMediaUrl(image))
+    .filter(Boolean);
 
-  if (images.length === 0) {
+  if (resolvedImages.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center border border-dashed border-white/10 rounded-2xl text-gray-500 text-sm">
         Event gallery coming soon.
@@ -165,7 +169,7 @@ function EventCollage({ event }: { event: EventItem }) {
     );
   }
 
-  const collageImages = images.slice(0, 6);
+  const collageImages = resolvedImages.slice(0, 6);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[130px] md:auto-rows-[150px]">

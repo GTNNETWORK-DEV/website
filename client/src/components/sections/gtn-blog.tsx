@@ -8,6 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface BlogPost {
   id: string;
@@ -137,7 +138,7 @@ export function GTNBlog() {
                       {blog.image_url && (
                         <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
                           <motion.img
-                            src={blog.image_url}
+                            src={resolveMediaUrl(blog.image_url)}
                             alt={blog.title}
                             className="w-full h-full object-cover"
                             whileHover={{ scale: 1.1 }}

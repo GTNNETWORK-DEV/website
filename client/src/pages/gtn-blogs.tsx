@@ -3,6 +3,7 @@ import { Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { Link } from "wouter";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface BlogPost {
   id: number;
@@ -75,7 +76,7 @@ export default function GTNBlogsPage() {
                 {blog.image_url && (
                   <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
                     <motion.img
-                      src={blog.image_url}
+                      src={resolveMediaUrl(blog.image_url)}
                       alt={blog.title}
                       className="w-full h-full object-cover"
                       whileHover={{ scale: 1.05 }}

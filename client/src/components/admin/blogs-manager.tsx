@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trash2, Upload, Plus, Pencil, X } from "lucide-react";
 import { API_BASE } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface Blog {
   id: number;
@@ -209,7 +210,10 @@ export function BlogsManager() {
 
           {imageUrl && (
             <div className="flex items-center gap-2">
-              <img src={imageUrl} className="h-14 rounded bg-white" />
+              <img
+                src={resolveMediaUrl(imageUrl)}
+                className="h-14 rounded bg-white"
+              />
               <button
                 type="button"
                 onClick={() => setImageUrl(null)}
@@ -256,7 +260,7 @@ export function BlogsManager() {
           >
             {b.image_url && (
               <img
-                src={b.image_url}
+                src={resolveMediaUrl(b.image_url)}
                 className="h-32 w-full object-cover rounded"
               />
             )}

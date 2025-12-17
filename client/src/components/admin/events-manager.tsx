@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trash2, Upload, Plus, CalendarDays, X, Pencil } from "lucide-react";
 import { API_BASE as API } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface EventItem {
   id: number;
@@ -278,7 +279,10 @@ export function EventsManager() {
                   key={url}
                   className="relative border border-white/10 rounded overflow-hidden"
                 >
-                  <img src={url} className="h-20 w-full object-cover" />
+                  <img
+                    src={resolveMediaUrl(url)}
+                    className="h-20 w-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => removeImage(url)}
@@ -327,7 +331,7 @@ export function EventsManager() {
           >
             {(e.images?.[0] || e.image_url) && (
               <img
-                src={e.images?.[0] || e.image_url || undefined}
+                src={resolveMediaUrl(e.images?.[0] || e.image_url)}
                 className="h-32 w-full object-cover rounded"
               />
             )}

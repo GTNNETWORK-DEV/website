@@ -3,6 +3,7 @@ import { ExternalLink, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api";
 import { Link } from "wouter";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface Project {
   id: number;
@@ -74,7 +75,7 @@ export default function GTNProjectsPage() {
               >
                 {project.logo_url && (
                   <img
-                    src={project.logo_url}
+                    src={resolveMediaUrl(project.logo_url)}
                     alt={project.name}
                     className="w-28 h-28 object-contain mb-6"
                   />

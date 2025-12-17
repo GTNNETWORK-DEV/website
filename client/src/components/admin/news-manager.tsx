@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trash2, Upload, Plus, Newspaper, X, Pencil } from "lucide-react";
 import { API_BASE as API } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface NewsItem {
   id: number;
@@ -239,7 +240,10 @@ export function NewsManager() {
                   key={url}
                   className="relative border border-white/10 rounded overflow-hidden"
                 >
-                  <img src={url} className="h-20 w-full object-cover" />
+                  <img
+                    src={resolveMediaUrl(url)}
+                    className="h-20 w-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => removeImage(url)}
@@ -288,7 +292,7 @@ export function NewsManager() {
           >
             {(n.images?.[0] || n.image_url) && (
               <img
-                src={n.images?.[0] || n.image_url || undefined}
+                src={resolveMediaUrl(n.images?.[0] || n.image_url)}
                 className="h-32 w-full object-cover rounded"
               />
             )}

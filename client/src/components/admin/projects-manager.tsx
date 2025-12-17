@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trash2, Plus, Upload, Pencil, X } from "lucide-react";
 import { API_BASE } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface Project {
   id: number;
@@ -198,7 +199,7 @@ export function ProjectsManager() {
           {logoUrl && (
             <div className="flex items-center gap-2">
               <img
-                src={logoUrl}
+                src={resolveMediaUrl(logoUrl)}
                 alt="preview"
                 className="h-12 rounded bg-white"
               />
@@ -248,7 +249,7 @@ export function ProjectsManager() {
           >
             {p.logo_url && (
               <img
-                src={p.logo_url}
+                src={resolveMediaUrl(p.logo_url)}
                 alt={p.name}
                 className="h-24 mx-auto object-contain"
               />

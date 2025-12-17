@@ -8,6 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface NewsItem {
   id: number;
@@ -193,23 +194,30 @@ function NewsImageRotator({
   alt: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const resolvedImages = images
+    .map((image) => resolveMediaUrl(image))
+    .filter(Boolean);
 
   useEffect(() => {
-    if (images.length < 2) return;
+    if (resolvedImages.length < 2) return;
 
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % images.length);
+      setActiveIndex((prev) => (prev + 1) % resolvedImages.length);
     }, 5200);
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [resolvedImages.length]);
+
+  if (resolvedImages.length === 0) {
+    return null;
+  }
 
   return (
     <div className="relative w-full h-full">
       <AnimatePresence mode="wait">
         <motion.img
-          key={`${images[activeIndex]}-${activeIndex}`}
-          src={images[activeIndex]}
+          key={`${resolvedImages[activeIndex]}-${activeIndex}`}
+          src={resolvedImages[activeIndex]}
           alt={alt}
           className="absolute inset-0 w-full h-full object-cover"
           initial={{ opacity: 0 }}

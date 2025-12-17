@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ExternalLink, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { API_BASE } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 interface Project {
   logo: string | undefined;
@@ -126,7 +127,7 @@ export function GTNOngoingProjects() {
                   >
                     <div className="relative bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all">
                       <img
-                        src={project.logo}
+                        src={resolveMediaUrl(project.logo)}
                         alt={project.name}
                         className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
                       />
@@ -143,7 +144,7 @@ export function GTNOngoingProjects() {
                   // NON-LINKED PROJECT CARD
                   <div className="bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all">
                     <img
-                      src={project.logo}
+                      src={resolveMediaUrl(project.logo)}
                       alt={project.name}
                       className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
                     />
