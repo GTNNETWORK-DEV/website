@@ -50,10 +50,6 @@ export function GTNBlog() {
     if (!carouselApi || latestBlogs.length < 2) return;
 
     const interval = setInterval(() => {
-      if (!carouselApi.canScrollNext()) {
-        clearInterval(interval);
-        return;
-      }
       carouselApi.scrollNext();
     }, 6500);
 
@@ -141,7 +137,7 @@ export function GTNBlog() {
             className="max-w-6xl mx-auto"
           >
             <Carousel
-              opts={{ align: "center", loop: false }}
+              opts={{ align: "center", loop: latestBlogs.length > 1 }}
               setApi={setCarouselApi}
               className="relative"
               style={{ perspective: "1200px" }}
