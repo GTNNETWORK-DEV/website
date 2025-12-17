@@ -169,7 +169,7 @@ function EventCollage({ event }: { event: EventItem }) {
     );
   }
 
-  const collageImages = resolvedImages.slice(0, 6);
+  const collageImages = resolvedImages;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[130px] md:auto-rows-[150px]">

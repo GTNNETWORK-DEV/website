@@ -14,7 +14,7 @@ interface EventItem {
   images?: string[];
 }
 
-const MAX_EVENT_IMAGES = 30;
+const MAX_EVENT_IMAGES = 60;
 
 export function EventsManager() {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -27,6 +27,7 @@ export function EventsManager() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [imagesDirty, setImagesDirty] = useState(false);
 
   // ------------------
   // FETCH EVENTS
@@ -81,11 +82,13 @@ export function EventsManager() {
     setUploading(false);
     if (uploaded.length > 0) {
       setImageUrls((prev) => [...prev, ...uploaded]);
+      setImagesDirty(true);
     }
   };
 
   const removeImage = (url: string) => {
     setImageUrls((prev) => prev.filter((item) => item !== url));
+    setImagesDirty(true);
   };
 
   const resetForm = () => {
@@ -96,6 +99,7 @@ export function EventsManager() {
     setDescription("");
     setImageUrls([]);
     setEditingId(null);
+    setImagesDirty(false);
   };
 
   const startEdit = (event: EventItem) => {
@@ -112,6 +116,7 @@ export function EventsManager() {
     } else {
       setImageUrls([]);
     }
+    setImagesDirty(false);
   };
 
   // ------------------
@@ -172,7 +177,9 @@ export function EventsManager() {
     form.append("location", location);
     form.append("link", link);
     form.append("description", description);
-    form.append("image_urls", JSON.stringify(imageUrls));
+    if (imagesDirty) {
+      form.append("image_urls", JSON.stringify(imageUrls));
+    }
 
     const res = await fetch(`${API}/events`, {
       method: "PUT",
@@ -268,7 +275,7 @@ export function EventsManager() {
               />
             </label>
             <span className="text-xs text-gray-400">
-              {imageUrls.length}/{MAX_EVENT_IMAGES}
+          {imageUrls.length}/{MAX_EVENT_IMAGES}
             </span>
           </div>
 

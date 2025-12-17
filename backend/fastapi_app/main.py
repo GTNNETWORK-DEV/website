@@ -60,10 +60,12 @@ ALLOWED_ORIGINS = (
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() == "true"
 COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
 
-UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parents[2]
+DEFAULT_UPLOAD_DIR = BASE_DIR / "uploads"
+UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", str(DEFAULT_UPLOAD_DIR)))
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_BASE_URL = os.getenv("UPLOAD_BASE_URL")
-MAX_EVENT_IMAGES = 30
+MAX_EVENT_IMAGES = 60
 MAX_NEWS_IMAGES = 30
 
 # --------------------

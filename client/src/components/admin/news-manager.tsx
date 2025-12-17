@@ -21,6 +21,7 @@ export function NewsManager() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [imagesDirty, setImagesDirty] = useState(false);
 
   // ------------------
   // FETCH NEWS
@@ -73,11 +74,13 @@ export function NewsManager() {
     setUploading(false);
     if (uploaded.length > 0) {
       setImageUrls((prev) => [...prev, ...uploaded]);
+      setImagesDirty(true);
     }
   };
 
   const removeImage = (url: string) => {
     setImageUrls((prev) => prev.filter((item) => item !== url));
+    setImagesDirty(true);
   };
 
   const resetForm = () => {
@@ -85,6 +88,7 @@ export function NewsManager() {
     setDescription("");
     setImageUrls([]);
     setEditingId(null);
+    setImagesDirty(false);
   };
 
   const startEdit = (item: NewsItem) => {
@@ -98,6 +102,7 @@ export function NewsManager() {
     } else {
       setImageUrls([]);
     }
+    setImagesDirty(false);
   };
 
   // ------------------
@@ -152,7 +157,9 @@ export function NewsManager() {
     form.append("id", String(editingId));
     form.append("title", title);
     form.append("description", description);
-    form.append("image_urls", JSON.stringify(imageUrls));
+    if (imagesDirty) {
+      form.append("image_urls", JSON.stringify(imageUrls));
+    }
 
     const res = await fetch(`${API}/news`, {
       method: "PUT",

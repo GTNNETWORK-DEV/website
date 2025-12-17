@@ -15,6 +15,12 @@ interface Project {
 export function GTNOngoingProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const emptyMessages = [
+    "Evaluating prospects",
+    "Inspecting variables",
+    "Scrutinizing team",
+  ];
+  const [emptyIndex, setEmptyIndex] = useState(0);
 
   useEffect(() => {
     async function loadProjects() {
@@ -38,6 +44,16 @@ export function GTNOngoingProjects() {
 
     loadProjects();
   }, [API_BASE]);
+
+  useEffect(() => {
+    if (loading || projects.length > 0) return;
+
+    const interval = setInterval(() => {
+      setEmptyIndex((prev) => (prev + 1) % emptyMessages.length);
+    }, 1400);
+
+    return () => clearInterval(interval);
+  }, [loading, projects.length, emptyMessages.length]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -98,7 +114,16 @@ export function GTNOngoingProjects() {
             className="text-center py-16"
           >
             <Zap className="w-16 h-16 text-primary/30 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg">No projects yet. Check back soon!</p>
+            <p className="text-gray-300 text-lg font-medium">
+              {emptyMessages[emptyIndex]}...
+            </p>
+            <div className="mt-6 h-1 w-56 mx-auto rounded-full bg-white/10 overflow-hidden">
+              <motion.div
+                className="h-full w-1/2 bg-primary"
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+              />
+            </div>
           </motion.div>
         ) : (
           
