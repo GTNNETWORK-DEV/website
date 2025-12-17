@@ -112,6 +112,10 @@ export function GTNOngoingProjects() {
     if (!carouselApi || projects.length < 2) return;
 
     const interval = setInterval(() => {
+      if (!carouselApi.canScrollNext()) {
+        clearInterval(interval);
+        return;
+      }
       carouselApi.scrollNext();
     }, 6500);
 
@@ -216,7 +220,7 @@ export function GTNOngoingProjects() {
             className="max-w-6xl mx-auto"
           >
             <Carousel
-              opts={{ align: "center", loop: projects.length > 1 }}
+              opts={{ align: "center", loop: false }}
               setApi={setCarouselApi}
               className="relative"
               style={{ perspective: "1200px" }}
