@@ -1,5 +1,30 @@
 import { motion } from "framer-motion";
-import { ExternalLink, Zap } from "lucide-react";
+import {
+  Activity,
+  Briefcase,
+  CheckCircle,
+  ClipboardCheck,
+  Cpu,
+  Database,
+  FileSearch,
+  Gauge,
+  Globe,
+  Lightbulb,
+  LineChart,
+  Map,
+  Network,
+  Orbit,
+  Radar,
+  ScanLine,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+  Workflow,
+  Zap,
+  ExternalLink,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
@@ -16,9 +41,29 @@ export function GTNOngoingProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const emptyMessages = [
-    "Evaluating prospects",
-    "Inspecting variables",
-    "Scrutinizing team",
+    { text: "Evaluating prospects", icon: Radar },
+    { text: "Inspecting variables", icon: ScanLine },
+    { text: "Scrutinizing team", icon: Users },
+    { text: "Validating partnerships", icon: ShieldCheck },
+    { text: "Mapping market signals", icon: Map },
+    { text: "Aligning growth targets", icon: Target },
+    { text: "Calibrating forecasts", icon: LineChart },
+    { text: "Reviewing opportunity stack", icon: Briefcase },
+    { text: "Cross-checking milestones", icon: ClipboardCheck },
+    { text: "Strengthening network links", icon: Network },
+    { text: "Monitoring traction", icon: TrendingUp },
+    { text: "Auditing readiness", icon: CheckCircle },
+    { text: "Indexing key assets", icon: Database },
+    { text: "Benchmarking performance", icon: Gauge },
+    { text: "Searching strategic fits", icon: FileSearch },
+    { text: "Tracking signals", icon: Activity },
+    { text: "Refining roadmaps", icon: Workflow },
+    { text: "Scanning global lanes", icon: Globe },
+    { text: "Testing system strength", icon: Cpu },
+    { text: "Circling new ventures", icon: Orbit },
+    { text: "Lighting growth paths", icon: Lightbulb },
+    { text: "Elevating innovation", icon: Sparkles },
+    { text: "Charging up new builds", icon: Zap },
   ];
   const [emptyIndex, setEmptyIndex] = useState(0);
 
@@ -50,7 +95,7 @@ export function GTNOngoingProjects() {
 
     const interval = setInterval(() => {
       setEmptyIndex((prev) => (prev + 1) % emptyMessages.length);
-    }, 1400);
+    }, 2200);
 
     return () => clearInterval(interval);
   }, [loading, projects.length, emptyMessages.length]);
@@ -113,15 +158,28 @@ export function GTNOngoingProjects() {
             transition={{ duration: 0.6 }}
             className="text-center py-16"
           >
-            <Zap className="w-16 h-16 text-primary/30 mx-auto mb-4" />
-            <p className="text-gray-300 text-lg font-medium">
-              {emptyMessages[emptyIndex]}...
-            </p>
+            <motion.div
+              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              {(() => {
+                const ActiveIcon = emptyMessages[emptyIndex].icon;
+                return <ActiveIcon className="h-6 w-6 text-gray-500" />;
+              })()}
+            </motion.div>
+            <motion.p
+              className="text-gray-300 text-lg font-medium"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              {emptyMessages[emptyIndex].text}...
+            </motion.p>
             <div className="mt-6 h-1 w-56 mx-auto rounded-full bg-white/10 overflow-hidden">
               <motion.div
                 className="h-full w-1/2 bg-primary"
                 animate={{ x: ["-100%", "100%"] }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: "linear" }}
               />
             </div>
           </motion.div>
