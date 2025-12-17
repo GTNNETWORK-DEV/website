@@ -137,7 +137,7 @@ export function GTNBlog() {
             className="max-w-6xl mx-auto"
           >
             <Carousel
-              opts={{ align: "start", loop: latestBlogs.length > 1 }}
+              opts={{ align: "center", loop: latestBlogs.length > 1 }}
               setApi={setCarouselApi}
               className="relative"
               style={{ perspective: "1200px" }}
@@ -149,7 +149,7 @@ export function GTNBlog() {
                 {latestBlogs.map((blog, index) => (
                   <CarouselItem
                     key={blog.id}
-                    className="pl-6 md:basis-1/2 lg:basis-1/3"
+                    className="pl-6 basis-[88%] sm:basis-[75%] md:basis-[60%] lg:basis-[45%]"
                   >
                     <Link
                       href={`/blogs#blog-${blog.id}`}

@@ -137,7 +137,7 @@ export function GTNNews() {
             className="max-w-6xl mx-auto"
           >
             <Carousel
-              opts={{ align: "start", loop: latestNews.length > 1 }}
+              opts={{ align: "center", loop: latestNews.length > 1 }}
               setApi={setCarouselApi}
               className="relative"
               style={{ perspective: "1200px" }}
@@ -149,7 +149,7 @@ export function GTNNews() {
                 {latestNews.map((item, index) => (
                   <CarouselItem
                     key={item.id}
-                    className="pl-6 md:basis-1/2"
+                    className="pl-6 basis-[88%] sm:basis-[75%] md:basis-[60%] lg:basis-[45%]"
                   >
                     <Link
                       href={`/news#news-${item.id}`}

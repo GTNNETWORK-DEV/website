@@ -7,9 +7,9 @@ export function GTNNavbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: "About", href: "#about" },
-    { name: "Offerings", href: "#offer" },
-    { name: "Projects", href: "#projects" },
+    { name: "About", href: "/#about" },
+    { name: "Offerings", href: "/#offer" },
+    { name: "Projects", href: "/#projects" },
   ];
 
   return (
@@ -41,7 +41,7 @@ export function GTNNavbar() {
           ))}
 
           {/* JOIN TEXT CTA */}
-          <a href="#join" className="relative group text-right">
+          <a href="/#join" className="relative group text-right">
             <span className="text-green-400 font-bold uppercase tracking-widest hover:text-green-300 transition-colors cursor-pointer">
               Join
             </span>
@@ -91,7 +91,7 @@ export function GTNNavbar() {
 
               {/* MOBILE JOIN TEXT */}
               <a
-                href="#join"
+                href="/#join"
                 onClick={() => setIsOpen(false)}
                 className="text-center"
               >
