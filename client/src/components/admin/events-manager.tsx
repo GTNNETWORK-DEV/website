@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trash2, Upload, Plus, CalendarDays } from "lucide-react";
+import { Trash2, Upload, Plus, CalendarDays, X } from "lucide-react";
 import { API_BASE as API } from "@/lib/api";
 
 interface EventItem {
@@ -9,7 +9,11 @@ interface EventItem {
   location: string | null;
   link: string | null;
   image_url: string | null;
+  description?: string | null;
+  images?: string[];
 }
+
+const MAX_EVENT_IMAGES = 30;
 
 export function EventsManager() {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -17,7 +21,9 @@ export function EventsManager() {
   const [eventDate, setEventDate] = useState("");
   const [location, setLocation] = useState("");
   const [link, setLink] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // ------------------
@@ -36,23 +42,48 @@ export function EventsManager() {
   // ------------------
   // UPLOAD IMAGE
   // ------------------
-  const uploadImage = async (file: File) => {
-    const form = new FormData();
-    form.append("file", file);
-
-    const res = await fetch(`${API}/upload`, {
-      method: "POST",
-      body: form,
-      credentials: "include",
-    });
-
-    const data = await res.json();
-    if (!data.success) {
-      alert(data.error || "Upload failed");
+  const uploadImages = async (files: FileList) => {
+    const remaining = MAX_EVENT_IMAGES - imageUrls.length;
+    if (remaining <= 0) {
+      alert(`You can upload up to ${MAX_EVENT_IMAGES} images.`);
       return;
     }
 
-    setImageUrl(data.url);
+    const selected = Array.from(files).slice(0, remaining);
+    if (selected.length === 0) {
+      return;
+    }
+
+    setUploading(true);
+    const uploaded: string[] = [];
+
+    for (const file of selected) {
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await fetch(`${API}/upload`, {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || "Upload failed");
+        continue;
+      }
+
+      uploaded.push(data.url);
+    }
+
+    setUploading(false);
+    if (uploaded.length > 0) {
+      setImageUrls((prev) => [...prev, ...uploaded]);
+    }
+  };
+
+  const removeImage = (url: string) => {
+    setImageUrls((prev) => prev.filter((item) => item !== url));
   };
 
   // ------------------
@@ -71,7 +102,10 @@ export function EventsManager() {
     if (eventDate) form.append("event_date", eventDate);
     if (location) form.append("location", location);
     if (link) form.append("link", link);
-    if (imageUrl) form.append("image_url", imageUrl);
+    if (description) form.append("description", description);
+    if (imageUrls.length > 0) {
+      form.append("image_urls", JSON.stringify(imageUrls));
+    }
 
     const res = await fetch(`${API}/events`, {
       method: "POST",
@@ -91,7 +125,8 @@ export function EventsManager() {
     setEventDate("");
     setLocation("");
     setLink("");
-    setImageUrl(null);
+    setDescription("");
+    setImageUrls([]);
     fetchEvents();
   };
 
@@ -150,28 +185,56 @@ export function EventsManager() {
           onChange={(e) => setLink(e.target.value)}
         />
 
-        <div className="flex items-center gap-4">
-          <label className="cursor-pointer text-primary flex items-center gap-2">
-            <Upload className="w-4 h-4" />
-            Upload Image
-            <input
-              hidden
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                e.target.files && uploadImage(e.target.files[0])
-              }
-            />
-          </label>
+        <textarea
+          className="w-full p-2 bg-black border border-white/20 rounded min-h-[120px]"
+          placeholder="Event brief (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
 
-          {imageUrl && (
-            <img src={imageUrl} className="h-14 rounded bg-white" />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-4">
+            <label className="cursor-pointer text-primary flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              {uploading ? "Uploading..." : "Upload Images"}
+              <input
+                hidden
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => e.target.files && uploadImages(e.target.files)}
+              />
+            </label>
+            <span className="text-xs text-gray-400">
+              {imageUrls.length}/{MAX_EVENT_IMAGES}
+            </span>
+          </div>
+
+          {imageUrls.length > 0 && (
+            <div className="grid grid-cols-3 gap-3">
+              {imageUrls.map((url) => (
+                <div
+                  key={url}
+                  className="relative border border-white/10 rounded overflow-hidden"
+                >
+                  <img src={url} className="h-20 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(url)}
+                    className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
         <button
           onClick={createEvent}
-          disabled={loading}
+          disabled={loading || uploading}
           className="bg-primary text-black px-4 py-2 rounded flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -186,9 +249,9 @@ export function EventsManager() {
             key={e.id}
             className="bg-white/5 border border-white/10 p-4 rounded space-y-2"
           >
-            {e.image_url && (
+            {(e.images?.[0] || e.image_url) && (
               <img
-                src={e.image_url}
+                src={e.images?.[0] || e.image_url || undefined}
                 className="h-32 w-full object-cover rounded"
               />
             )}
@@ -204,6 +267,18 @@ export function EventsManager() {
 
             {e.location && (
               <p className="text-sm text-gray-400">{e.location}</p>
+            )}
+
+            {e.description && (
+              <p className="text-sm text-gray-400 line-clamp-2">
+                {e.description}
+              </p>
+            )}
+
+            {e.images && e.images.length > 0 && (
+              <p className="text-xs text-gray-500">
+                {e.images.length} images
+              </p>
             )}
 
             {e.link && (

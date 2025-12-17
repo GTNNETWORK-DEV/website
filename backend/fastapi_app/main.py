@@ -3,6 +3,7 @@ import time
 import hmac
 import hashlib
 import secrets
+import json
 from pathlib import Path
 from typing import Optional, List, Generator
 from datetime import date, datetime
@@ -22,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, func, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy import String, Text, Date, DateTime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # --------------------
 # Environment
@@ -62,6 +63,7 @@ COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 UPLOAD_BASE_URL = os.getenv("UPLOAD_BASE_URL")
+MAX_EVENT_IMAGES = 30
 
 # --------------------
 # Database setup
@@ -96,7 +98,9 @@ class Event(Base):
     event_date: Mapped[Optional[str]] = mapped_column(Date)
     location: Mapped[Optional[str]] = mapped_column(Text)
     link: Mapped[Optional[str]] = mapped_column(Text)
+    description: Mapped[Optional[str]] = mapped_column(Text)
     image_url: Mapped[Optional[str]] = mapped_column(Text)
+    image_urls: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[DateTime]] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -178,6 +182,26 @@ def ensure_join_columns() -> None:
 ensure_join_columns()
 
 
+def ensure_event_columns() -> None:
+    """Ensure legacy events table has expected columns."""
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS events "
+                "ADD COLUMN IF NOT EXISTS description TEXT"
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS events "
+                "ADD COLUMN IF NOT EXISTS image_urls TEXT"
+            )
+        )
+
+
+ensure_event_columns()
+
+
 def sync_sequences() -> None:
     """Ensure Postgres sequences are ahead of current max ids."""
     tables = ("projects", "events", "news", "blogs", "join_requests")
@@ -226,7 +250,9 @@ class EventOut(BaseModel):
     event_date: Optional[date] = None
     location: Optional[str] = None
     link: Optional[str] = None
+    description: Optional[str] = None
     image_url: Optional[str] = None
+    images: List[str] = Field(default_factory=list)
     created_at: Optional[datetime] = None
 
 
@@ -443,6 +469,45 @@ def form_or_query_id(id_form: Optional[int], id_query: Optional[int]) -> int:
     return int(id_val)
 
 
+def parse_event_images(image_urls: Optional[str]) -> List[str]:
+    if not image_urls:
+        return []
+
+    try:
+        data = json.loads(image_urls)
+    except json.JSONDecodeError:
+        return []
+
+    if not isinstance(data, list):
+        return []
+
+    cleaned = []
+    for item in data:
+        if isinstance(item, str):
+            url = item.strip()
+            if url:
+                cleaned.append(url)
+    return cleaned
+
+
+def serialize_event(event: Event) -> EventOut:
+    images = parse_event_images(event.image_urls)
+    if event.image_url and event.image_url not in images:
+        images = [event.image_url, *images]
+
+    return EventOut(
+        id=event.id,
+        name=event.name,
+        event_date=event.event_date,
+        location=event.location,
+        link=event.link,
+        description=event.description,
+        image_url=event.image_url,
+        images=images,
+        created_at=event.created_at,
+    )
+
+
 # Projects
 @app.get("/api/projects", response_model=List[ProjectOut])
 def get_projects(db: Session = Depends(get_db)):
@@ -484,7 +549,7 @@ def delete_project(
 @app.get("/api/events", response_model=List[EventOut])
 def get_events(db: Session = Depends(get_db)):
     events = db.query(Event).order_by(Event.created_at.desc()).all()
-    return events
+    return [serialize_event(event) for event in events]
 
 
 @app.post("/api/events")
@@ -493,7 +558,9 @@ def create_event(
     event_date: Optional[str] = Form(None),
     location: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
+    image_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     _: bool = Depends(require_admin),
 ):
@@ -504,17 +571,33 @@ def create_event(
         except ValueError:
             raise HTTPException(status_code=400, detail="event_date must be YYYY-MM-DD")
 
+    cleaned_image_url = image_url.strip() if image_url else None
+    images = parse_event_images(image_urls)
+    if cleaned_image_url and cleaned_image_url not in images:
+        images.insert(0, cleaned_image_url)
+
+    if len(images) > MAX_EVENT_IMAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Up to {MAX_EVENT_IMAGES} images are allowed per event",
+        )
+
+    images_json = json.dumps(images) if images else None
+    primary_image = cleaned_image_url or (images[0] if images else None)
+
     event = Event(
         name=name.strip(),
         event_date=event_date_value,
         location=location,
         link=link,
-        image_url=image_url,
+        description=description.strip() if description else None,
+        image_url=primary_image,
+        image_urls=images_json,
     )
     db.add(event)
     db.commit()
     db.refresh(event)
-    return {"success": True, "event": EventOut.model_validate(event)}
+    return {"success": True, "event": serialize_event(event)}
 
 
 @app.delete("/api/events")

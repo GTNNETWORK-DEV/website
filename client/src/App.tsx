@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import NotFound from "@/pages/not-found";
 import GTNHome from "@/pages/gtn-home";
+import GTNEvents from "@/pages/gtn-events";
 
 // ADMIN PAGES
 import AdminLogin from "@/pages/admin/login";
@@ -17,6 +18,7 @@ function Router() {
     <Switch>
       {/* ================= PUBLIC ================= */}
       <Route path="/" component={GTNHome} />
+      <Route path="/events" component={GTNEvents} />
 
       {/* ================= ADMIN ================= */}
       {/* both open login */}

@@ -2,6 +2,12 @@ import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 interface NewsItem {
   id: string;
@@ -14,6 +20,7 @@ interface NewsItem {
 export function GTNNews() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
 
   // 🔥 API CALL (THIS WAS MISSING)
   useEffect(() => {
@@ -33,7 +40,17 @@ export function GTNNews() {
       });
   }, [API_BASE]);
 
-  const latestNews = news.slice(0, 2);
+  const latestNews = news.slice(0, 6);
+
+  useEffect(() => {
+    if (!carouselApi || latestNews.length < 2) return;
+
+    const interval = setInterval(() => {
+      carouselApi.scrollNext();
+    }, 6500);
+
+    return () => clearInterval(interval);
+  }, [carouselApi, latestNews.length]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -99,49 +116,60 @@ export function GTNNews() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 gap-8"
+            className="max-w-6xl mx-auto"
           >
-            {latestNews.map((item) => (
-              <motion.div
-                key={item.id}
-                variants={itemVariants}
-                whileHover={{ y: -8 }}
-                className="feature-card bg-card p-6 rounded-xl"
-              >
-                <div className="grid md:grid-cols-3 gap-6 items-start">
-                  {/* Image */}
-                  {item.image_url && (
-                    <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
-                      <motion.img
-                        src={item.image_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.4 }}
-                      />
-                    </div>
-                  )}
+            <Carousel
+              opts={{ align: "start", loop: latestNews.length > 1 }}
+              setApi={setCarouselApi}
+            >
+              <CarouselContent className="-ml-6">
+                {latestNews.map((item) => (
+                  <CarouselItem
+                    key={item.id}
+                    className="pl-6 md:basis-1/2"
+                  >
+                    <motion.div
+                      variants={itemVariants}
+                      whileHover={{ y: -8 }}
+                      className="feature-card bg-card p-6 rounded-xl"
+                    >
+                      <div className="grid md:grid-cols-3 gap-6 items-start">
+                        {/* Image */}
+                        {item.image_url && (
+                          <div className="md:col-span-1 relative overflow-hidden h-48 rounded-lg">
+                            <motion.img
+                              src={item.image_url}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                              whileHover={{ scale: 1.1 }}
+                              transition={{ duration: 0.4 }}
+                            />
+                          </div>
+                        )}
 
-                  {/* Content */}
-                  <div className="md:col-span-2">
-                    <h3 className="text-2xl font-display font-bold text-white mb-3 line-clamp-2">
-                      {item.title}
-                    </h3>
+                        {/* Content */}
+                        <div className="md:col-span-2">
+                          <h3 className="text-2xl font-display font-bold text-white mb-3 line-clamp-2">
+                            {item.title}
+                          </h3>
 
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-3">
-                      {item.description}
-                    </p>
+                          <p className="text-gray-400 text-sm mb-4 line-clamp-3">
+                            {item.description}
+                          </p>
 
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Clock className="w-4 h-4" />
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleDateString()
-                        : ""}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Clock className="w-4 h-4" />
+                            {item.created_at
+                              ? new Date(item.created_at).toLocaleDateString()
+                              : ""}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </motion.div>
         )}
       </div>

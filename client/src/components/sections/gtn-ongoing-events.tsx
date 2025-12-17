@@ -1,20 +1,30 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, Calendar as CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { Link } from "wouter";
 
 interface Event {
-  id: string;
+  id: number;
   name: string;
-  image_url?: string;
-  event_date?: string;
-  location?: string;
-  link?: string;
+  image_url?: string | null;
+  images?: string[];
+  description?: string | null;
+  event_date?: string | null;
+  location?: string | null;
+  link?: string | null;
 }
 
 export function GTNOngoingEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
 
   // 🔥 THIS IS THE MISSING PART (API CALL)
   useEffect(() => {
@@ -33,6 +43,16 @@ export function GTNOngoingEvents() {
         setLoading(false);
       });
   }, [API_BASE]);
+
+  useEffect(() => {
+    if (!carouselApi || events.length < 2) return;
+
+    const interval = setInterval(() => {
+      carouselApi.scrollNext();
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [carouselApi, events.length]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -99,29 +119,34 @@ export function GTNOngoingEvents() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto"
+            className="max-w-6xl mx-auto"
           >
-            {events.map((event) => (
-              <motion.div
-                key={event.id}
-                variants={itemVariants}
-                whileHover={{ y: -8, scale: 1.05 }}
-                className="group w-full md:w-[300px]"
-              >
-                {event.link ? (
-                  <a
-                    href={event.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block h-full"
+            <Carousel
+              opts={{ align: "start", loop: events.length > 1 }}
+              setApi={setCarouselApi}
+            >
+              <CarouselContent className="-ml-6">
+                {events.map((event) => (
+                  <CarouselItem
+                    key={event.id}
+                    className="pl-6 md:basis-1/2 lg:basis-1/3"
                   >
-                    <EventCard event={event} />
-                  </a>
-                ) : (
-                  <EventCard event={event} />
-                )}
-              </motion.div>
-            ))}
+                    <motion.div
+                      variants={itemVariants}
+                      whileHover={{ y: -8, scale: 1.03 }}
+                      className="group h-full"
+                    >
+                      <Link
+                        href={`/events#event-${event.id}`}
+                        className="block h-full"
+                      >
+                        <EventCard event={event} />
+                      </Link>
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </motion.div>
         )}
       </div>
@@ -133,14 +158,16 @@ export function GTNOngoingEvents() {
    Event Card Component
    ========================= */
 function EventCard({ event }: { event: Event }) {
+  const images = event.images?.length
+    ? event.images
+    : event.image_url
+    ? [event.image_url]
+    : [];
+
   return (
     <div className="h-full bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-6 backdrop-blur-lg hover:border-primary/30 transition-all duration-300 flex flex-col items-center">
-      {event.image_url && (
-        <img
-          src={event.image_url}
-          alt={event.name}
-          className="w-full h-48 object-cover rounded-lg mb-4"
-        />
+      {images.length > 0 && (
+        <EventImageRotator images={images} alt={event.name} />
       )}
 
       <h3 className="text-lg font-display font-bold text-white text-center mb-2">
@@ -156,11 +183,46 @@ function EventCard({ event }: { event: Event }) {
         </div>
       )}
 
-      {event.link && (
-        <div className="mt-auto flex items-center gap-2 text-primary text-sm font-semibold">
-          View Details <ExternalLink className="w-4 h-4" />
-        </div>
-      )}
+      <div className="mt-auto flex items-center gap-2 text-primary text-sm font-semibold">
+        View Event <ExternalLink className="w-4 h-4" />
+      </div>
+    </div>
+  );
+}
+
+function EventImageRotator({
+  images,
+  alt,
+}: {
+  images: string[];
+  alt: string;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length < 2) return;
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  return (
+    <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={`${images[activeIndex]}-${activeIndex}`}
+          src={images[activeIndex]}
+          alt={alt}
+          className="absolute inset-0 w-full h-full object-cover"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}
+        />
+      </AnimatePresence>
     </div>
   );
 }
