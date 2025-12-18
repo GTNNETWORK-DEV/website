@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Facebook, Send, Music, ChevronLeft } from "lucide-react";
+import { Instagram, Facebook, Send, Twitter, ChevronLeft } from "lucide-react";
 
 export function GTNSocialTab() {
   const [open, setOpen] = useState(false);
@@ -9,23 +9,26 @@ export function GTNSocialTab() {
     {
       icon: Instagram,
       href: "https://www.instagram.com/prince_kashif786?igsh=NXp2cnhmYWdtdDQx&utm_source=qr",
-      color: "text-pink-500",
+      color: "text-white",
+      bg: "bg-[radial-gradient(circle_at_30%_30%,#fdf497_10%,#fd5949_45%,#d6249f_60%,#285AEB_100%)]",
     },
     {
       icon: Facebook,
       href: "https://www.facebook.com/share/1BdjbRmHmD/?mibextid=wwXIfr",
-      color: "text-blue-500",
+      color: "text-white",
+      bg: "bg-[linear-gradient(135deg,#3b82f6,#0b5fd3)]",
+    },
+    {
+      icon: Twitter, // X
+      href: "https://twitter.com",
+      color: "text-white",
+      bg: "bg-black",
     },
     {
       icon: Send, // Telegram
       href: "https://t.me/gtnglobalnetwork",
-      color: "text-sky-400",
-    },
-    {
-      icon: Music, // TikTok (placeholder)
-      href: "#",
-      color: "text-white/40",
-      disabled: true,
+      color: "text-white",
+      bg: "bg-[radial-gradient(circle_at_30%_30%,#5fc3ff_10%,#3898ff_60%,#1d4ed8_100%)]",
     },
   ];
 
@@ -44,18 +47,17 @@ export function GTNSocialTab() {
           {socials.map((s, i) => (
             <a
               key={i}
-              href={s.disabled ? undefined : s.href}
+              href={s.href}
               target="_blank"
               rel="noreferrer"
               className={`
-                w-11 h-11 rounded-full flex items-center justify-center
-                bg-white/10 border border-white/20
-                hover:bg-white/20 transition-all
-                ${s.color}
-                ${s.disabled ? "cursor-not-allowed opacity-40" : ""}
+                w-12 h-12 rounded-2xl flex items-center justify-center
+                shadow-lg border border-white/10
+                hover:scale-105 hover:shadow-primary/40 transition-all
+                ${s.bg} ${s.color}
               `}
             >
-              <s.icon size={20} />
+              <s.icon size={22} strokeWidth={2.4} />
             </a>
           ))}
         </div>
@@ -84,18 +86,17 @@ export function GTNSocialTab() {
                 {socials.map((s, i) => (
                   <a
                     key={i}
-                    href={s.disabled ? undefined : s.href}
+                    href={s.href}
                     target="_blank"
                     rel="noreferrer"
                     className={`
-                      w-11 h-11 rounded-full flex items-center justify-center
-                      bg-white/10 border border-white/20
-                      hover:bg-white/20 transition-all
-                      ${s.color}
-                      ${s.disabled ? "cursor-not-allowed opacity-40" : ""}
+                      w-12 h-12 rounded-2xl flex items-center justify-center
+                      shadow-lg border border-white/10
+                      hover:scale-105 hover:shadow-primary/40 transition-all
+                      ${s.bg} ${s.color}
                     `}
                   >
-                    <s.icon size={20} />
+                    <s.icon size={22} strokeWidth={2.4} />
                   </a>
                 ))}
               </div>
