@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Facebook, Send, Linkedin, Twitter, ChevronLeft } from "lucide-react";
+import { Instagram, Facebook, Send, Music, ChevronLeft } from "lucide-react";
 
 export function GTNSocialTab() {
   const [open, setOpen] = useState(false);
@@ -10,31 +10,22 @@ export function GTNSocialTab() {
       icon: Instagram,
       href: "https://www.instagram.com/prince_kashif786?igsh=NXp2cnhmYWdtdDQx&utm_source=qr",
       color: "text-pink-500",
-      bg: "bg-white",
     },
     {
       icon: Facebook,
       href: "https://www.facebook.com/share/1BdjbRmHmD/?mibextid=wwXIfr",
-      color: "text-blue-600",
-      bg: "bg-white",
-    },
-    {
-      icon: Linkedin,
-      href: "https://www.linkedin.com",
-      color: "text-sky-700",
-      bg: "bg-white",
-    },
-    {
-      icon: Twitter, // using X/Twitter mark
-      href: "https://twitter.com",
-      color: "text-black",
-      bg: "bg-white",
+      color: "text-blue-500",
     },
     {
       icon: Send, // Telegram
       href: "https://t.me/gtnglobalnetwork",
-      color: "text-sky-500",
-      bg: "bg-white",
+      color: "text-sky-400",
+    },
+    {
+      icon: Music, // TikTok (placeholder)
+      href: "#",
+      color: "text-white/40",
+      disabled: true,
     },
   ];
 
@@ -53,14 +44,15 @@ export function GTNSocialTab() {
           {socials.map((s, i) => (
             <a
               key={i}
-              href={s.href}
+              href={s.disabled ? undefined : s.href}
               target="_blank"
               rel="noreferrer"
               className={`
                 w-11 h-11 rounded-full flex items-center justify-center
-                border border-white/10 shadow-lg
-                hover:scale-105 hover:shadow-primary/40 transition-all
-                ${s.bg} ${s.color}
+                bg-white/10 border border-white/20
+                hover:bg-white/20 transition-all
+                ${s.color}
+                ${s.disabled ? "cursor-not-allowed opacity-40" : ""}
               `}
             >
               <s.icon size={20} />
@@ -92,14 +84,15 @@ export function GTNSocialTab() {
                 {socials.map((s, i) => (
                   <a
                     key={i}
-                    href={s.href}
+                    href={s.disabled ? undefined : s.href}
                     target="_blank"
                     rel="noreferrer"
                     className={`
                       w-11 h-11 rounded-full flex items-center justify-center
-                      border border-white/10 shadow-lg
-                      hover:scale-105 hover:shadow-primary/40 transition-all
-                      ${s.bg} ${s.color}
+                      bg-white/10 border border-white/20
+                      hover:bg-white/20 transition-all
+                      ${s.color}
+                      ${s.disabled ? "cursor-not-allowed opacity-40" : ""}
                     `}
                   >
                     <s.icon size={20} />
