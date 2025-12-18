@@ -102,7 +102,7 @@ export function GTNSocialTab() {
         <button
           onClick={() => setOpen(!open)}
           className="
-            w-10 h-16 rounded-l-2xl
+            w-8 h-20 rounded-l-2xl
             bg-white/10 backdrop-blur-xl
             border border-white/20
             flex items-center justify-center
