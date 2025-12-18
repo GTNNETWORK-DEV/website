@@ -10,7 +10,7 @@ export function GTNSocialTab() {
       icon: Instagram,
       href: "https://www.instagram.com/prince_kashif786?igsh=NXp2cnhmYWdtdDQx&utm_source=qr",
       color: "text-white",
-      bg: "bg-[radial-gradient(circle_at_30%_30%,#fdf497_10%,#fd5949_45%,#d6249f_60%,#285AEB_100%)]",
+      bg: "bg-[linear-gradient(135deg,#f58529,#dd2a7b,#8134af)]",
     },
     {
       icon: Facebook,
