@@ -8,13 +8,13 @@ export function GTNSocialTab() {
   const socials = [
     {
       icon: Instagram,
-      href: "https://www.instagram.com/prince_kashif786?igsh=NXp2cnhmYWdtdDQx&utm_source=qr",
+      href: "https://www.instagram.com/gtnnetworkofficial",
       color: "text-white",
       bg: "bg-[linear-gradient(135deg,#f58529,#dd2a7b,#8134af)]",
     },
     {
       icon: Facebook,
-      href: "https://www.facebook.com/share/1BdjbRmHmD/?mibextid=wwXIfr",
+      href: "https://www.facebook.com/share/14RwBdxmLrH/?mibextid=wwXIfr",
       color: "text-white",
       bg: "bg-[linear-gradient(135deg,#3b82f6,#0b5fd3)]",
     },
