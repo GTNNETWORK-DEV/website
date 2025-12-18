@@ -155,10 +155,7 @@ export function GTNNews() {
                     key={item.id}
                     className={`pl-6 ${itemBasisClass}`}
                   >
-                    <Link
-                      href={`/news#news-${item.id}`}
-                      className="block h-full"
-                    >
+                    <Link href={`/news/${item.id}`} className="block h-full">
                       <motion.div variants={itemVariants} className="h-full">
                         <CarouselDepthItem
                           index={index}

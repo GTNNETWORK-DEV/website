@@ -155,10 +155,7 @@ export function GTNBlog() {
                     key={blog.id}
                     className={`pl-6 ${itemBasisClass}`}
                   >
-                    <Link
-                      href={`/blogs#blog-${blog.id}`}
-                      className="block h-full"
-                    >
+                  <Link href={`/blogs/${blog.id}`} className="block h-full">
                       <motion.div variants={itemVariants} className="h-full">
                         <CarouselDepthItem
                           index={index}

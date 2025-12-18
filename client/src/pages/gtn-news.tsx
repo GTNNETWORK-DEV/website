@@ -5,6 +5,7 @@ import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
 import { GTNNavbar } from "@/components/layout/gtn-navbar";
 import { GTNPageHeader } from "@/components/layout/gtn-page-header";
+import { Link } from "wouter";
 
 interface NewsItem {
   id: number;
@@ -103,9 +104,11 @@ export default function GTNNewsPage() {
                       )}
 
                       <div>
-                        <h2 className="text-2xl font-display font-bold text-white mb-2">
-                          {item.title}
-                        </h2>
+                        <Link href={`/news/${item.id}`} className="group block">
+                          <h2 className="text-2xl font-display font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                            {item.title}
+                          </h2>
+                        </Link>
                         <p className="text-gray-400 text-sm leading-relaxed">
                           {item.description}
                         </p>

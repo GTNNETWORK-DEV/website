@@ -5,6 +5,7 @@ import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
 import { GTNNavbar } from "@/components/layout/gtn-navbar";
 import { GTNPageHeader } from "@/components/layout/gtn-page-header";
+import { Link } from "wouter";
 
 interface Project {
   id: number;
@@ -78,9 +79,17 @@ export default function GTNProjectsPage() {
                       className="w-28 h-28 object-contain mb-6"
                     />
                   )}
-                  <h2 className="text-lg font-display font-bold text-white mb-2">
-                    {project.name}
-                  </h2>
+                  <Link href={`/projects/${project.id}`} className="group block">
+                    <h2 className="text-lg font-display font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                      {project.name}
+                    </h2>
+                  </Link>
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="text-primary text-sm font-semibold inline-flex items-center gap-2 mb-2"
+                  >
+                    View details <ExternalLink className="w-4 h-4" />
+                  </Link>
                   {project.link && (
                     <a
                       href={project.link}

@@ -26,6 +26,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
+import { Link } from "wouter";
 import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
 import {
@@ -236,39 +237,21 @@ export function GTNOngoingProjects() {
                         total={projects.length}
                         activeIndex={activeIndex}
                       >
-                        {project.link ? (
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block h-full"
-                          >
-                            <div className="relative bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all h-full flex flex-col items-center">
-                              <img
-                                src={resolveMediaUrl(project.logo)}
-                                alt={project.name}
-                                className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
-                              />
-                              <h3 className="text-lg font-display font-bold text-white text-center mb-2 group-hover:text-primary transition-colors">
-                                {project.name}
-                              </h3>
-                              <div className="flex items-center justify-center gap-2 text-primary text-sm font-semibold mt-auto">
-                                Visit <ExternalLink className="w-4 h-4" />
-                              </div>
-                            </div>
-                          </a>
-                        ) : (
-                          <div className="bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all h-full flex flex-col items-center">
+                        <Link href={`/projects/${project.id}`} className="block h-full">
+                          <div className="relative bg-linear-to-br from-white/5 to-white/2 border border-white/10 rounded-xl p-8 backdrop-blur-lg hover:border-primary/30 transition-all h-full flex flex-col items-center">
                             <img
                               src={resolveMediaUrl(project.logo)}
                               alt={project.name}
                               className="w-32 h-32 object-contain mb-4 mx-auto group-hover:scale-110 transition-transform"
                             />
-                            <h3 className="text-lg font-display font-bold text-white text-center">
+                            <h3 className="text-lg font-display font-bold text-white text-center mb-2 group-hover:text-primary transition-colors">
                               {project.name}
                             </h3>
+                            <div className="flex items-center justify-center gap-2 text-primary text-sm font-semibold mt-auto">
+                              View Project <ExternalLink className="w-4 h-4" />
+                            </div>
                           </div>
-                        )}
+                        </Link>
                       </CarouselDepthItem>
                     </motion.div>
                   </CarouselItem>

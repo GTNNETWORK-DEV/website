@@ -5,6 +5,7 @@ import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
 import { GTNNavbar } from "@/components/layout/gtn-navbar";
 import { GTNPageHeader } from "@/components/layout/gtn-page-header";
+import { Link } from "wouter";
 
 interface BlogPost {
   id: number;
@@ -90,11 +91,11 @@ export default function GTNBlogsPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.04 }}
                   viewport={{ once: true }}
-                  className="feature-card bg-card p-6 rounded-xl"
-                >
-                  {blog.image_url && (
-                    <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
-                      <motion.img
+                className="feature-card bg-card p-6 rounded-xl"
+              >
+                {blog.image_url && (
+                  <div className="relative overflow-hidden h-48 mb-4 rounded-lg">
+                    <motion.img
                         src={resolveMediaUrl(blog.image_url)}
                         alt={blog.title}
                         className="w-full h-full object-cover"
@@ -104,9 +105,11 @@ export default function GTNBlogsPage() {
                     </div>
                   )}
 
-                  <h2 className="text-xl font-display font-bold text-white mb-2 line-clamp-2">
-                    {blog.title}
-                  </h2>
+                  <Link href={`/blogs/${blog.id}`} className="group block">
+                    <h2 className="text-xl font-display font-bold text-white mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                      {blog.title}
+                    </h2>
+                  </Link>
 
                   <p className="text-gray-400 text-sm mb-4 line-clamp-3">
                     {blog.excerpt}

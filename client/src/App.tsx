@@ -10,6 +10,9 @@ import GTNEvents from "@/pages/gtn-events";
 import GTNNews from "@/pages/gtn-news";
 import GTNBlogs from "@/pages/gtn-blogs";
 import GTNProjects from "@/pages/gtn-projects";
+import GTNBlogDetail from "@/pages/gtn-blog-detail";
+import GTNNewsDetail from "@/pages/gtn-news-detail";
+import GTNProjectDetail from "@/pages/gtn-project-detail";
 
 // ADMIN PAGES
 import AdminLogin from "@/pages/admin/login";
@@ -23,8 +26,11 @@ function Router() {
       <Route path="/" component={GTNHome} />
       <Route path="/events" component={GTNEvents} />
       <Route path="/news" component={GTNNews} />
+      <Route path="/news/:id" component={GTNNewsDetail} />
       <Route path="/blogs" component={GTNBlogs} />
+      <Route path="/blogs/:id" component={GTNBlogDetail} />
       <Route path="/projects" component={GTNProjects} />
+      <Route path="/projects/:id" component={GTNProjectDetail} />
 
       {/* ================= ADMIN ================= */}
       {/* both open login */}
