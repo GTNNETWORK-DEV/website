@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Facebook, Send, Twitter, ChevronLeft } from "lucide-react";
+import { Instagram, Facebook, Send, ChevronLeft } from "lucide-react";
 
 export function GTNSocialTab() {
   const [open, setOpen] = useState(false);
@@ -17,12 +17,6 @@ export function GTNSocialTab() {
       href: "https://www.facebook.com/share/1BdjbRmHmD/?mibextid=wwXIfr",
       color: "text-white",
       bg: "bg-[linear-gradient(135deg,#3b82f6,#0b5fd3)]",
-    },
-    {
-      icon: Twitter, // X
-      href: "https://twitter.com",
-      color: "text-white",
-      bg: "bg-black",
     },
     {
       icon: Send, // Telegram
