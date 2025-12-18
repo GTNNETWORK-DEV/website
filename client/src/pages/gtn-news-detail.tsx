@@ -33,22 +33,44 @@ export default function GTNNewsDetail() {
 
   useEffect(() => {
     if (!newsId) return;
-    setLoading(true);
-    fetch(`${API_BASE}/news/${newsId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load news");
-        return res.json();
-      })
-      .then((data) => {
-        setNews(data);
-        setError(null);
-        setActiveIndex(0);
-      })
-      .catch((err) => {
-        console.error("Error loading news:", err);
+    async function loadNews() {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/news/${newsId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setNews(data);
+          setError(null);
+          setActiveIndex(0);
+          return;
+        }
+      } catch (err) {
+        console.error("News detail fetch failed, falling back to list:", err);
+      }
+
+      // Fallback: fetch list and find by id
+      try {
+        const listRes = await fetch(`${API_BASE}/news`);
+        const listData = await listRes.json();
+        const found = Array.isArray(listData)
+          ? listData.find((item: any) => String(item.id) === String(newsId))
+          : null;
+        if (found) {
+          setNews(found);
+          setError(null);
+          setActiveIndex(0);
+        } else {
+          setError("News item not found.");
+        }
+      } catch (err) {
+        console.error("News list fallback failed:", err);
         setError("Unable to load this news item right now.");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadNews();
   }, [newsId]);
 
   useEffect(() => {

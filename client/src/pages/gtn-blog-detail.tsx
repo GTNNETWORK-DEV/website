@@ -27,21 +27,42 @@ export default function GTNBlogDetail() {
   useEffect(() => {
     if (!blogId) return;
 
-    setLoading(true);
-    fetch(`${API_BASE}/blogs/${blogId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load blog");
-        return res.json();
-      })
-      .then((data) => {
-        setBlog(data);
-        setError(null);
-      })
-      .catch((err) => {
-        console.error("Error loading blog:", err);
+    async function loadBlog() {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/blogs/${blogId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBlog(data);
+          setError(null);
+          return;
+        }
+      } catch (err) {
+        console.error("Blog detail fetch failed, falling back to list:", err);
+      }
+
+      // Fallback: fetch list and find by id
+      try {
+        const listRes = await fetch(`${API_BASE}/blogs`);
+        const listData = await listRes.json();
+        const found = Array.isArray(listData)
+          ? listData.find((item: any) => String(item.id) === String(blogId))
+          : null;
+        if (found) {
+          setBlog(found);
+          setError(null);
+        } else {
+          setError("Blog not found.");
+        }
+      } catch (err) {
+        console.error("Blog list fallback failed:", err);
         setError("Unable to load this blog post right now.");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBlog();
   }, [blogId]);
 
   return (

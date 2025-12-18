@@ -24,21 +24,42 @@ export default function GTNProjectDetail() {
 
   useEffect(() => {
     if (!projectId) return;
-    setLoading(true);
-    fetch(`${API_BASE}/projects/${projectId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load project");
-        return res.json();
-      })
-      .then((data) => {
-        setProject(data);
-        setError(null);
-      })
-      .catch((err) => {
-        console.error("Error loading project:", err);
+    async function loadProject() {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/projects/${projectId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProject(data);
+          setError(null);
+          return;
+        }
+      } catch (err) {
+        console.error("Project detail fetch failed, falling back to list:", err);
+      }
+
+      // Fallback: fetch list and find by id
+      try {
+        const listRes = await fetch(`${API_BASE}/projects`);
+        const listData = await listRes.json();
+        const found = Array.isArray(listData)
+          ? listData.find((item: any) => String(item.id) === String(projectId))
+          : null;
+        if (found) {
+          setProject(found);
+          setError(null);
+        } else {
+          setError("Project not found.");
+        }
+      } catch (err) {
+        console.error("Project list fallback failed:", err);
         setError("Unable to load this project right now.");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProject();
   }, [projectId]);
 
   return (
