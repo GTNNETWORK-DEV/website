@@ -1124,6 +1124,16 @@ def _export_backup_payload(db: Session) -> BytesIO:
             ),
         )
 
+        # Bundle uploaded assets (best-effort)
+        if UPLOAD_DIR.exists():
+            for file_path in UPLOAD_DIR.rglob("*"):
+                if file_path.is_file():
+                    relative = file_path.relative_to(UPLOAD_DIR)
+                    archive.write(
+                        file_path,
+                        arcname=str(Path("uploads") / relative),
+                    )
+
     buffer.seek(0)
     return buffer
 
@@ -1170,6 +1180,7 @@ async def restore_backup(
 
     content = await file.read()
     payload = _load_backup_file(content)
+    archive = zipfile.ZipFile(BytesIO(content))
 
     try:
         db.query(Project).delete()
@@ -1252,6 +1263,27 @@ async def restore_backup(
             db.bulk_save_objects(news_rows)
         if blog_rows:
             db.bulk_save_objects(blog_rows)
+
+        # Extract uploads (best-effort, after data for simplicity)
+        upload_members = [
+            name
+            for name in archive.namelist()
+            if name.startswith("uploads/") and not name.endswith("/")
+        ]
+        for member in upload_members:
+            raw_subpath = member[len("uploads/") :]
+            if not raw_subpath:
+                continue
+            dest_path = (UPLOAD_DIR / raw_subpath).resolve()
+            try:
+                dest_path.relative_to(UPLOAD_DIR.resolve())
+            except ValueError:
+                # prevent path traversal
+                continue
+
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            with dest_path.open("wb") as f_out:
+                f_out.write(archive.read(member))
 
         db.commit()
         sync_sequences()
