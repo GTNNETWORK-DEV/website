@@ -11,6 +11,7 @@ interface NewsItem {
   id: number;
   title: string;
   description: string;
+  body?: string | null;
   image_url?: string | null;
   images?: string[];
   created_at?: string | null;
@@ -135,9 +136,12 @@ export default function GTNNewsDetail() {
                 )}
               </div>
 
-              <p className="text-gray-300 leading-relaxed text-base whitespace-pre-line">
-                {news.description}
-              </p>
+              <div
+                className="prose prose-invert max-w-none text-gray-200 [&>*]:text-gray-200"
+                dangerouslySetInnerHTML={{
+                  __html: news.body || news.description,
+                }}
+              />
 
               <div className="pt-6 border-t border-white/10 flex flex-wrap gap-3 text-sm text-primary">
                 <Link href="/news" className="underline">

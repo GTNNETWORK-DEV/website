@@ -15,6 +15,7 @@ interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
+  body?: string | null;
   image_url?: string;
   created_at?: string;
   author: string;

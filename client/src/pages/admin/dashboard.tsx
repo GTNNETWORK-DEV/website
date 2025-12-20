@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText, Newspaper, FolderKanban, LogOut } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  Newspaper,
+  FolderKanban,
+  LogOut,
+  ArchiveRestore,
+} from "lucide-react";
 import { ProjectsManager } from "@/components/admin/projects-manager";
 import { EventsManager } from "@/components/admin/events-manager";
 import { NewsManager } from "@/components/admin/news-manager";
 import { BlogsManager } from "@/components/admin/blogs-manager";
+import { BackupManager } from "@/components/admin/backup-manager";
 import { API_BASE } from "@/lib/api";
 
 export default function AdminDashboard() {
@@ -49,6 +57,7 @@ export default function AdminDashboard() {
     { id: "events", label: "Events", icon: Calendar },
     { id: "news", label: "News", icon: Newspaper },
     { id: "blogs", label: "Blogs", icon: FileText },
+    { id: "backup", label: "Backup", icon: ArchiveRestore },
   ];
 
   if (checkingAuth) {
@@ -107,6 +116,7 @@ export default function AdminDashboard() {
           {activeTab === "events" && <EventsManager />}
           {activeTab === "news" && <NewsManager />}
           {activeTab === "blogs" && <BlogsManager />}
+          {activeTab === "backup" && <BackupManager />}
         </div>
       </main>
     </div>

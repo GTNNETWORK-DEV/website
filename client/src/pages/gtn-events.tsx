@@ -13,6 +13,7 @@ interface EventItem {
   location?: string | null;
   link?: string | null;
   description?: string | null;
+  body?: string | null;
   image_url?: string | null;
   images?: string[];
 }
@@ -117,10 +118,13 @@ export default function GTNEventsPage() {
                         </div>
                       )}
 
-                      {event.description && (
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          {event.description}
-                        </p>
+                      {(event.body || event.description) && (
+                        <div
+                          className="prose prose-invert max-w-none text-gray-300 text-sm leading-relaxed [&>*]:text-gray-300"
+                          dangerouslySetInnerHTML={{
+                            __html: event.body || event.description || "",
+                          }}
+                        />
                       )}
 
                       {event.link && (

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Trash2, Upload, Plus, Newspaper, X, Pencil } from "lucide-react";
 import { API_BASE as API } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 
 interface NewsItem {
   id: number;
   title: string;
   description: string;
+  body?: string | null;
   image_url: string | null;
   images?: string[];
 }
@@ -17,6 +19,7 @@ export function NewsManager() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [body, setBody] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,6 +89,7 @@ export function NewsManager() {
   const resetForm = () => {
     setTitle("");
     setDescription("");
+    setBody("");
     setImageUrls([]);
     setEditingId(null);
     setImagesDirty(false);
@@ -95,6 +99,7 @@ export function NewsManager() {
     setEditingId(item.id);
     setTitle(item.title || "");
     setDescription(item.description || "");
+    setBody(item.body || "");
     if (item.images && item.images.length > 0) {
       setImageUrls(item.images);
     } else if (item.image_url) {
@@ -109,8 +114,8 @@ export function NewsManager() {
   // CREATE NEWS
   // ------------------
   const createNews = async () => {
-    if (!title || !description) {
-      alert("Title & description required");
+    if (!title || !description || !body.trim()) {
+      alert("Title, summary, and body are required");
       return;
     }
 
@@ -119,6 +124,7 @@ export function NewsManager() {
     const form = new FormData();
     form.append("title", title);
     form.append("description", description);
+    form.append("body", body);
     if (imageUrls.length > 0) {
       form.append("image_urls", JSON.stringify(imageUrls));
     }
@@ -146,8 +152,8 @@ export function NewsManager() {
   // ------------------
   const updateNews = async () => {
     if (!editingId) return;
-    if (!title || !description) {
-      alert("Title & description required");
+    if (!title || !description || !body.trim()) {
+      alert("Title, summary, and body are required");
       return;
     }
 
@@ -157,6 +163,7 @@ export function NewsManager() {
     form.append("id", String(editingId));
     form.append("title", title);
     form.append("description", description);
+    form.append("body", body);
     if (imagesDirty) {
       form.append("image_urls", JSON.stringify(imageUrls));
     }
@@ -220,6 +227,13 @@ export function NewsManager() {
           placeholder="News description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+
+        <RichTextEditor
+          label="Body"
+          value={body}
+          onChange={setBody}
+          placeholder="Write the detailed news article with headings"
         />
 
         <div className="flex flex-col gap-3">

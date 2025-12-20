@@ -4,6 +4,8 @@ import hmac
 import hashlib
 import secrets
 import json
+import zipfile
+from io import BytesIO
 from pathlib import Path
 from typing import Optional, List, Generator
 from datetime import date, datetime
@@ -102,6 +104,7 @@ class Event(Base):
     location: Mapped[Optional[str]] = mapped_column(Text)
     link: Mapped[Optional[str]] = mapped_column(Text)
     description: Mapped[Optional[str]] = mapped_column(Text)
+    body: Mapped[Optional[str]] = mapped_column(Text)
     image_url: Mapped[Optional[str]] = mapped_column(Text)
     image_urls: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[DateTime]] = mapped_column(
@@ -115,6 +118,7 @@ class News(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    body: Mapped[Optional[str]] = mapped_column(Text)
     image_url: Mapped[Optional[str]] = mapped_column(Text)
     image_urls: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[DateTime]] = mapped_column(
@@ -129,6 +133,7 @@ class Blog(Base):
     title: Mapped[str] = mapped_column(Text, nullable=False)
     excerpt: Mapped[str] = mapped_column(Text, nullable=False)
     author: Mapped[str] = mapped_column(Text, nullable=False)
+    body: Mapped[Optional[str]] = mapped_column(Text)
     image_url: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[DateTime]] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -201,6 +206,12 @@ def ensure_event_columns() -> None:
                 "ADD COLUMN IF NOT EXISTS image_urls TEXT"
             )
         )
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS events "
+                "ADD COLUMN IF NOT EXISTS body TEXT"
+            )
+        )
 
 
 ensure_event_columns()
@@ -215,9 +226,29 @@ def ensure_news_columns() -> None:
                 "ADD COLUMN IF NOT EXISTS image_urls TEXT"
             )
         )
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS news "
+                "ADD COLUMN IF NOT EXISTS body TEXT"
+            )
+        )
 
 
 ensure_news_columns()
+
+
+def ensure_blog_columns() -> None:
+    """Ensure legacy blogs table has expected columns."""
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE IF EXISTS blogs "
+                "ADD COLUMN IF NOT EXISTS body TEXT"
+            )
+        )
+
+
+ensure_blog_columns()
 
 
 def sync_sequences() -> None:
@@ -269,6 +300,7 @@ class EventOut(BaseModel):
     location: Optional[str] = None
     link: Optional[str] = None
     description: Optional[str] = None
+    body: Optional[str] = None
     image_url: Optional[str] = None
     images: List[str] = Field(default_factory=list)
     created_at: Optional[datetime] = None
@@ -279,6 +311,7 @@ class NewsOut(BaseModel):
     id: int
     title: str
     description: str
+    body: Optional[str] = None
     image_url: Optional[str] = None
     images: List[str] = Field(default_factory=list)
     created_at: Optional[datetime] = None
@@ -290,6 +323,7 @@ class BlogOut(BaseModel):
     title: str
     excerpt: str
     author: str
+    body: Optional[str] = None
     image_url: Optional[str] = None
     created_at: Optional[datetime] = None
 
@@ -516,6 +550,15 @@ def parse_image_list(image_urls: Optional[str]) -> List[str]:
     return cleaned
 
 
+def parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
 def serialize_event(event: Event) -> EventOut:
     images = parse_image_list(event.image_urls)
     if event.image_url and event.image_url not in images:
@@ -528,6 +571,7 @@ def serialize_event(event: Event) -> EventOut:
         location=event.location,
         link=event.link,
         description=event.description,
+        body=event.body,
         image_url=event.image_url,
         images=images,
         created_at=event.created_at,
@@ -543,6 +587,7 @@ def serialize_news(news_item: News) -> NewsOut:
         id=news_item.id,
         title=news_item.title,
         description=news_item.description,
+        body=news_item.body,
         image_url=news_item.image_url,
         images=images,
         created_at=news_item.created_at,
@@ -630,6 +675,7 @@ def create_event(
     location: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    body: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
     image_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
@@ -655,6 +701,7 @@ def create_event(
 
     images_json = json.dumps(images) if images else None
     primary_image = cleaned_image_url or (images[0] if images else None)
+    cleaned_body = clean_optional_text(body)
 
     event = Event(
         name=name.strip(),
@@ -662,6 +709,7 @@ def create_event(
         location=location,
         link=link,
         description=description.strip() if description else None,
+        body=cleaned_body,
         image_url=primary_image,
         image_urls=images_json,
     )
@@ -679,6 +727,7 @@ def update_event(
     location: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    body: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
     image_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
@@ -713,6 +762,9 @@ def update_event(
 
     if description is not None:
         event.description = clean_optional_text(description)
+
+    if body is not None:
+        event.body = clean_optional_text(body)
 
     if image_urls is not None or image_url is not None:
         existing_images = parse_image_list(event.image_urls)
@@ -762,10 +814,19 @@ def get_news(db: Session = Depends(get_db)):
     return [serialize_news(item) for item in news_items]
 
 
+@app.get("/api/news/{news_id}", response_model=NewsOut)
+def get_news_item(news_id: int, db: Session = Depends(get_db)):
+    news_item = db.query(News).filter(News.id == news_id).first()
+    if not news_item:
+        raise HTTPException(status_code=404, detail="News not found")
+    return serialize_news(news_item)
+
+
 @app.post("/api/news")
 def create_news(
     title: str = Form(...),
     description: str = Form(...),
+    body: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
     image_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
@@ -780,14 +841,16 @@ def create_news(
         raise HTTPException(
             status_code=400,
             detail=f"Up to {MAX_NEWS_IMAGES} images are allowed per news item",
-        )
+    )
 
     images_json = json.dumps(images) if images else None
     primary_image = cleaned_image_url or (images[0] if images else None)
+    cleaned_body = clean_optional_text(body)
 
     news_item = News(
         title=title.strip(),
         description=description.strip(),
+        body=cleaned_body,
         image_url=primary_image,
         image_urls=images_json,
     )
@@ -802,6 +865,7 @@ def update_news(
     id: int = Form(...),
     title: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    body: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
     image_urls: Optional[str] = Form(None),
     db: Session = Depends(get_db),
@@ -822,6 +886,9 @@ def update_news(
         if not cleaned_description:
             raise HTTPException(status_code=400, detail="Description is required")
         news_item.description = cleaned_description
+
+    if body is not None:
+        news_item.body = clean_optional_text(body)
 
     if image_urls is not None or image_url is not None:
         existing_images = parse_image_list(news_item.image_urls)
@@ -871,19 +938,30 @@ def get_blogs(db: Session = Depends(get_db)):
     return blogs
 
 
+@app.get("/api/blogs/{blog_id}", response_model=BlogOut)
+def get_blog(blog_id: int, db: Session = Depends(get_db)):
+    blog = db.query(Blog).filter(Blog.id == blog_id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    return BlogOut.model_validate(blog)
+
+
 @app.post("/api/blogs")
 def create_blog(
     title: str = Form(...),
     excerpt: str = Form(...),
     author: str = Form(...),
+    body: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     _: bool = Depends(require_admin),
 ):
+    body_cleaned = clean_optional_text(body)
     blog = Blog(
         title=title.strip(),
         excerpt=excerpt.strip(),
         author=author.strip(),
+        body=body_cleaned,
         image_url=image_url,
     )
     db.add(blog)
@@ -898,6 +976,7 @@ def update_blog(
     title: Optional[str] = Form(None),
     excerpt: Optional[str] = Form(None),
     author: Optional[str] = Form(None),
+    body: Optional[str] = Form(None),
     image_url: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     _: bool = Depends(require_admin),
@@ -924,6 +1003,9 @@ def update_blog(
             raise HTTPException(status_code=400, detail="Author is required")
         blog.author = cleaned_author
 
+    if body is not None:
+        blog.body = clean_optional_text(body)
+
     if image_url is not None:
         blog.image_url = clean_optional_text(image_url)
 
@@ -945,6 +1027,247 @@ def delete_blog(
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Blog not found")
     return {"success": True}
+
+
+def _export_backup_payload(db: Session) -> BytesIO:
+    buffer = BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        projects = db.query(Project).order_by(Project.id.asc()).all()
+        events = db.query(Event).order_by(Event.id.asc()).all()
+        news_items = db.query(News).order_by(News.id.asc()).all()
+        blogs = db.query(Blog).order_by(Blog.id.asc()).all()
+
+        archive.writestr(
+            "projects.json",
+            json.dumps(
+                [
+                    {
+                        "id": project.id,
+                        "name": project.name,
+                        "logo_url": project.logo_url,
+                        "link": project.link,
+                        "created_at": project.created_at.isoformat()
+                        if project.created_at
+                        else None,
+                    }
+                    for project in projects
+                ],
+                indent=2,
+            ),
+        )
+
+        archive.writestr(
+            "events.json",
+            json.dumps(
+                [
+                    {
+                        "id": event.id,
+                        "name": event.name,
+                        "event_date": event.event_date.isoformat()
+                        if event.event_date
+                        else None,
+                        "location": event.location,
+                        "link": event.link,
+                        "description": event.description,
+                        "body": event.body,
+                        "image_url": event.image_url,
+                        "image_urls": parse_image_list(event.image_urls),
+                        "created_at": event.created_at.isoformat()
+                        if event.created_at
+                        else None,
+                    }
+                    for event in events
+                ],
+                indent=2,
+            ),
+        )
+
+        archive.writestr(
+            "news.json",
+            json.dumps(
+                [
+                    {
+                        "id": news_item.id,
+                        "title": news_item.title,
+                        "description": news_item.description,
+                        "body": news_item.body,
+                        "image_url": news_item.image_url,
+                        "image_urls": parse_image_list(news_item.image_urls),
+                        "created_at": news_item.created_at.isoformat()
+                        if news_item.created_at
+                        else None,
+                    }
+                    for news_item in news_items
+                ],
+                indent=2,
+            ),
+        )
+
+        archive.writestr(
+            "blogs.json",
+            json.dumps(
+                [
+                    {
+                        "id": blog.id,
+                        "title": blog.title,
+                        "excerpt": blog.excerpt,
+                        "author": blog.author,
+                        "body": blog.body,
+                        "image_url": blog.image_url,
+                        "created_at": blog.created_at.isoformat()
+                        if blog.created_at
+                        else None,
+                    }
+                    for blog in blogs
+                ],
+                indent=2,
+            ),
+        )
+
+    buffer.seek(0)
+    return buffer
+
+
+def _load_backup_file(file_bytes: bytes) -> dict:
+    try:
+        archive = zipfile.ZipFile(BytesIO(file_bytes))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid backup file: {exc}")
+
+    payload = {}
+    for name in ("projects.json", "events.json", "news.json", "blogs.json"):
+        if name not in archive.namelist():
+            payload[name] = []
+            continue
+        try:
+            data = json.loads(archive.read(name).decode("utf-8"))
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Could not read {name}: {exc}")
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail=f"{name} must contain a list")
+        payload[name] = data
+    return payload
+
+
+@app.get("/api/backup")
+def download_backup(db: Session = Depends(get_db), _: bool = Depends(require_admin)):
+    buffer = _export_backup_payload(db)
+    filename = f"gtn-backup-{int(time.time())}.zip"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(
+        content=buffer.getvalue(), media_type="application/zip", headers=headers
+    )
+
+
+@app.post("/api/backup/restore")
+async def restore_backup(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    if not file:
+        raise HTTPException(status_code=400, detail="Backup file is required")
+
+    content = await file.read()
+    payload = _load_backup_file(content)
+
+    try:
+        db.query(Project).delete()
+        db.query(Event).delete()
+        db.query(News).delete()
+        db.query(Blog).delete()
+
+        project_rows = []
+        for item in payload.get("projects.json", []):
+            project_rows.append(
+                Project(
+                    id=item.get("id"),
+                    name=item.get("name", "").strip(),
+                    logo_url=clean_optional_text(item.get("logo_url")),
+                    link=clean_optional_text(item.get("link")),
+                    created_at=parse_iso_datetime(item.get("created_at")),
+                )
+            )
+
+        event_rows = []
+        for item in payload.get("events.json", []):
+            images = item.get("image_urls") or []
+            primary = clean_optional_text(item.get("image_url"))
+            if primary and primary not in images:
+                images.insert(0, primary)
+            event_rows.append(
+                Event(
+                    id=item.get("id"),
+                    name=item.get("name", "").strip(),
+                    event_date=date.fromisoformat(item["event_date"])
+                    if item.get("event_date")
+                    else None,
+                    location=clean_optional_text(item.get("location")),
+                    link=clean_optional_text(item.get("link")),
+                    description=clean_optional_text(item.get("description")),
+                    body=clean_optional_text(item.get("body")),
+                    image_url=primary or (images[0] if images else None),
+                    image_urls=json.dumps(images) if images else None,
+                    created_at=parse_iso_datetime(item.get("created_at")),
+                )
+            )
+
+        news_rows = []
+        for item in payload.get("news.json", []):
+            images = item.get("image_urls") or []
+            primary = clean_optional_text(item.get("image_url"))
+            if primary and primary not in images:
+                images.insert(0, primary)
+            news_rows.append(
+                News(
+                    id=item.get("id"),
+                    title=item.get("title", "").strip(),
+                    description=item.get("description", "").strip(),
+                    body=clean_optional_text(item.get("body")),
+                    image_url=primary or (images[0] if images else None),
+                    image_urls=json.dumps(images) if images else None,
+                    created_at=parse_iso_datetime(item.get("created_at")),
+                )
+            )
+
+        blog_rows = []
+        for item in payload.get("blogs.json", []):
+            blog_rows.append(
+                Blog(
+                    id=item.get("id"),
+                    title=item.get("title", "").strip(),
+                    excerpt=item.get("excerpt", "").strip(),
+                    author=item.get("author", "").strip(),
+                    body=clean_optional_text(item.get("body")),
+                    image_url=clean_optional_text(item.get("image_url")),
+                    created_at=parse_iso_datetime(item.get("created_at")),
+                )
+            )
+
+        if project_rows:
+            db.bulk_save_objects(project_rows)
+        if event_rows:
+            db.bulk_save_objects(event_rows)
+        if news_rows:
+            db.bulk_save_objects(news_rows)
+        if blog_rows:
+            db.bulk_save_objects(blog_rows)
+
+        db.commit()
+        sync_sequences()
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Restore failed: {exc}")
+
+    return {
+        "success": True,
+        "restored_counts": {
+            "projects": len(project_rows),
+            "events": len(event_rows),
+            "news": len(news_rows),
+            "blogs": len(blog_rows),
+        },
+    }
 
 
 # Join Requests

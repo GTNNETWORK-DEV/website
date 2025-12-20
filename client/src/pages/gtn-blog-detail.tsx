@@ -11,6 +11,7 @@ interface BlogPost {
   id: number;
   title: string;
   excerpt: string;
+  body?: string | null;
   content?: string;
   author: string;
   image_url?: string | null;
@@ -113,9 +114,12 @@ export default function GTNBlogDetail() {
                 <span className="text-primary font-semibold">{blog.author}</span>
               </div>
 
-              <p className="text-gray-300 leading-relaxed text-base whitespace-pre-line">
-                {blog.content || blog.excerpt}
-              </p>
+              <div
+                className="prose prose-invert max-w-none text-gray-200 [&>*]:text-gray-200"
+                dangerouslySetInnerHTML={{
+                  __html: blog.body || blog.content || blog.excerpt,
+                }}
+              />
 
               <div className="pt-6 border-t border-white/10 flex flex-wrap gap-3 text-sm text-primary">
                 <Link href="/blogs" className="underline">

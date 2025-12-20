@@ -11,6 +11,7 @@ interface BlogPost {
   id: number;
   title: string;
   excerpt: string;
+  body?: string | null;
   author: string;
   image_url?: string | null;
   created_at?: string | null;

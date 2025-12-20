@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Trash2, Upload, Plus, Pencil, X } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 
 interface Blog {
   id: number;
   title: string;
   excerpt: string;
   author: string;
+  body?: string | null;
   image_url: string | null;
 }
 
@@ -15,6 +17,7 @@ export function BlogsManager() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [body, setBody] = useState("");
   const [author, setAuthor] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,8 +62,8 @@ export function BlogsManager() {
   // CREATE BLOG
   // ------------------
   const createBlog = async () => {
-    if (!title || !excerpt || !author) {
-      alert("All fields required");
+    if (!title || !excerpt || !author || !body.trim()) {
+      alert("Title, excerpt, body, and author are required");
       return;
     }
 
@@ -69,6 +72,7 @@ export function BlogsManager() {
     const form = new FormData();
     form.append("title", title);
     form.append("excerpt", excerpt);
+    form.append("body", body);
     form.append("author", author);
     if (imageUrl) form.append("image_url", imageUrl);
 
@@ -96,6 +100,7 @@ export function BlogsManager() {
   const resetForm = () => {
     setTitle("");
     setExcerpt("");
+    setBody("");
     setAuthor("");
     setImageUrl(null);
     setEditingId(null);
@@ -105,6 +110,7 @@ export function BlogsManager() {
     setEditingId(blog.id);
     setTitle(blog.title || "");
     setExcerpt(blog.excerpt || "");
+    setBody(blog.body || "");
     setAuthor(blog.author || "");
     setImageUrl(blog.image_url || null);
   };
@@ -114,8 +120,8 @@ export function BlogsManager() {
   // ------------------
   const updateBlog = async () => {
     if (!editingId) return;
-    if (!title || !excerpt || !author) {
-      alert("All fields required");
+    if (!title || !excerpt || !author || !body.trim()) {
+      alert("Title, excerpt, body, and author are required");
       return;
     }
 
@@ -125,6 +131,7 @@ export function BlogsManager() {
     form.append("id", String(editingId));
     form.append("title", title);
     form.append("excerpt", excerpt);
+    form.append("body", body);
     form.append("author", author);
     form.append("image_url", imageUrl || "");
 
@@ -185,6 +192,13 @@ export function BlogsManager() {
           placeholder="Excerpt"
           value={excerpt}
           onChange={(e) => setExcerpt(e.target.value)}
+        />
+
+        <RichTextEditor
+          label="Body"
+          value={body}
+          onChange={setBody}
+          placeholder="Write the full blog content with headings and formatting"
         />
 
         <input

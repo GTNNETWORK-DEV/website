@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Trash2, Upload, Plus, CalendarDays, X, Pencil } from "lucide-react";
 import { API_BASE as API } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 
 interface EventItem {
   id: number;
@@ -11,6 +12,7 @@ interface EventItem {
   link: string | null;
   image_url: string | null;
   description?: string | null;
+  body?: string | null;
   images?: string[];
 }
 
@@ -23,6 +25,7 @@ export function EventsManager() {
   const [location, setLocation] = useState("");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
+  const [body, setBody] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -97,6 +100,7 @@ export function EventsManager() {
     setLocation("");
     setLink("");
     setDescription("");
+    setBody("");
     setImageUrls([]);
     setEditingId(null);
     setImagesDirty(false);
@@ -109,6 +113,7 @@ export function EventsManager() {
     setLocation(event.location || "");
     setLink(event.link || "");
     setDescription(event.description || "");
+    setBody(event.body || "");
     if (event.images && event.images.length > 0) {
       setImageUrls(event.images);
     } else if (event.image_url) {
@@ -136,6 +141,7 @@ export function EventsManager() {
     if (location) form.append("location", location);
     if (link) form.append("link", link);
     if (description) form.append("description", description);
+    form.append("body", body);
     if (imageUrls.length > 0) {
       form.append("image_urls", JSON.stringify(imageUrls));
     }
@@ -177,6 +183,7 @@ export function EventsManager() {
     form.append("location", location);
     form.append("link", link);
     form.append("description", description);
+    form.append("body", body);
     if (imagesDirty) {
       form.append("image_urls", JSON.stringify(imageUrls));
     }
@@ -259,6 +266,13 @@ export function EventsManager() {
           placeholder="Event brief (optional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+
+        <RichTextEditor
+          label="Body"
+          value={body}
+          onChange={setBody}
+          placeholder="Full event write-up with headings and formatting"
         />
 
         <div className="flex flex-col gap-3">

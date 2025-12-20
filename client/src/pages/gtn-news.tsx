@@ -11,6 +11,7 @@ interface NewsItem {
   id: number;
   title: string;
   description: string;
+  body?: string | null;
   image_url?: string | null;
   images?: string[];
   created_at?: string | null;
@@ -109,9 +110,12 @@ export default function GTNNewsPage() {
                             {item.title}
                           </h2>
                         </Link>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                          {item.description}
-                        </p>
+                        <div
+                          className="prose prose-invert max-w-none text-gray-300 text-sm leading-relaxed [&>*]:text-gray-300"
+                          dangerouslySetInnerHTML={{
+                            __html: item.body || item.description,
+                          }}
+                        />
                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-4">
                           <Clock className="w-4 h-4" />
                           {item.created_at
