@@ -37,6 +37,7 @@ export default function GTNBlogDetail() {
             const data = await res.json();
             setBlog(data);
             setError(null);
+            setLoading(false);
             return;
           }
         } catch (err) {
