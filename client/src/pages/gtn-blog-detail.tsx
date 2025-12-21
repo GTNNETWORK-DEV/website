@@ -31,33 +31,35 @@ export default function GTNBlogDetail() {
     async function loadBlog() {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/blogs/${blogId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setBlog(data);
-          setError(null);
-          return;
+        try {
+          const res = await fetch(`${API_BASE}/blogs/${blogId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setBlog(data);
+            setError(null);
+            return;
+          }
+        } catch (err) {
+          console.error("Blog detail fetch failed, falling back to list:", err);
         }
-      } catch (err) {
-        console.error("Blog detail fetch failed, falling back to list:", err);
-      }
 
-      // Fallback: fetch list and find by id
-      try {
-        const listRes = await fetch(`${API_BASE}/blogs`);
-        const listData = await listRes.json();
-        const found = Array.isArray(listData)
-          ? listData.find((item: any) => String(item.id) === String(blogId))
-          : null;
-        if (found) {
-          setBlog(found);
-          setError(null);
-        } else {
-          setError("Blog not found.");
+        // Fallback: fetch list and find by id
+        try {
+          const listRes = await fetch(`${API_BASE}/blogs`);
+          const listData = await listRes.json();
+          const found = Array.isArray(listData)
+            ? listData.find((item: any) => String(item.id) === String(blogId))
+            : null;
+          if (found) {
+            setBlog(found);
+            setError(null);
+          } else {
+            setError("Blog not found.");
+          }
+        } catch (err) {
+          console.error("Blog list fallback failed:", err);
+          setError("Unable to load this blog post right now.");
         }
-      } catch (err) {
-        console.error("Blog list fallback failed:", err);
-        setError("Unable to load this blog post right now.");
       } finally {
         setLoading(false);
       }
