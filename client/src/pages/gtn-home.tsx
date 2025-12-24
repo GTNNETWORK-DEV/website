@@ -17,6 +17,7 @@ import { GTNNews } from "@/components/sections/gtn-news";
 import { GTNJoin } from "@/components/sections/gtn-join";
 import { GTNCTA } from "@/components/sections/gtn-cta";
 import { GTNStats } from "@/components/sections/GTNStats";
+import { GTNCryptoTable } from "@/components/sections/gtn-crypto-table";
 import { GTNSocialTab } from "@/components/sections/GTNSocialTab";
 import { GTNWhatsAppSupport } from "@/components/sections/GTNWhatsAppSupport";
 
@@ -42,6 +43,7 @@ export default function GTNHome() {
 
       <GTNSupportSystem />
       <GTNWhyChoose />
+      <GTNCryptoTable />
       <GTNBlog />
       <GTNNews />
       <GTNJoin />

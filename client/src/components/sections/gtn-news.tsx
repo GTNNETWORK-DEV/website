@@ -12,12 +12,15 @@ import { resolveMediaUrl } from "@/lib/media";
 import { Link } from "wouter";
 
 interface NewsItem {
-  id: number;
+  id: string;
+  internalId?: number;
   title: string;
   description: string;
   image_url?: string | null;
   images?: string[];
   created_at?: string | null;
+  externalUrl?: string;
+  source?: string;
 }
 
 export function GTNNews() {
@@ -28,20 +31,66 @@ export function GTNNews() {
 
   // 🔥 API CALL (THIS WAS MISSING)
   useEffect(() => {
-    fetch(`${API_BASE}/news`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setNews(data);
-        } else {
+    let cancelled = false;
+
+    const loadNews = async () => {
+      try {
+        setLoading(true);
+
+        const [gtnRes, cryptoRes] = await Promise.allSettled([
+          fetch(`${API_BASE}/news`).then((res) => res.json()),
+          fetch(
+            "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&categories=Bitcoin,Ethereum,Crypto",
+          ).then((res) => res.json()),
+        ]);
+
+        const gtnNews =
+          gtnRes.status === "fulfilled" && Array.isArray(gtnRes.value)
+            ? (gtnRes.value as any[]).map((item) => ({
+                ...item,
+                id: `gtn-${item.id}`,
+                internalId: item.id,
+              }))
+            : [];
+
+        const cryptoNewsRaw =
+          cryptoRes.status === "fulfilled" &&
+          Array.isArray(cryptoRes.value?.Data)
+            ? (cryptoRes.value.Data as any[])
+            : [];
+
+        const cryptoNews: NewsItem[] = cryptoNewsRaw.slice(0, 10).map((item) => ({
+          id: `crypto-${item.id}`,
+          title: item.title,
+          description: item.body,
+          image_url: item.imageurl,
+          created_at: item.published_on
+            ? new Date(item.published_on * 1000).toISOString()
+            : null,
+          externalUrl: item.url,
+          source: item.source_info?.name,
+        }));
+
+        const combined = [...gtnNews, ...cryptoNews].slice(0, 12);
+        if (!cancelled) {
+          setNews(combined);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading news:", err);
           setNews([]);
         }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error loading news:", err);
-        setLoading(false);
-      });
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadNews();
+    return () => {
+      cancelled = true;
+    };
   }, [API_BASE]);
 
   const latestNews = news.slice(0, 6);
@@ -155,7 +204,7 @@ export function GTNNews() {
                     key={item.id}
                     className={`pl-6 ${itemBasisClass}`}
                   >
-                    <Link href={`/news/${item.id}`} className="block h-full">
+                    <NewsCardWrapper item={item}>
                       <motion.div variants={itemVariants} className="h-full">
                         <CarouselDepthItem
                           index={index}
@@ -189,13 +238,18 @@ export function GTNNews() {
                                   {item.created_at
                                     ? new Date(item.created_at).toLocaleDateString()
                                     : ""}
+                                  {item.source && (
+                                    <span className="ml-2 text-primary font-semibold">
+                                      {item.source}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
                           </div>
                         </CarouselDepthItem>
                       </motion.div>
-                    </Link>
+                    </NewsCardWrapper>
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -251,11 +305,11 @@ function getCarouselDelta(index: number, activeIndex: number, total: number) {
 }
 
 function getNewsImages(item: NewsItem) {
-  if (item.images && item.images.length > 0) {
-    return item.images;
-  }
   if (item.image_url) {
     return [item.image_url];
+  }
+  if (item.images && item.images.length > 0) {
+    return item.images;
   }
   return [];
 }
@@ -302,5 +356,27 @@ function NewsImageRotator({
         />
       </AnimatePresence>
     </div>
+  );
+}
+
+function NewsCardWrapper({ item, children }: { item: NewsItem; children: ReactNode }) {
+  if (item.externalUrl) {
+    return (
+      <a
+        href={item.externalUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="block h-full"
+      >
+        {children}
+      </a>
+    );
+  }
+
+  const href = item.internalId ? `/news/${item.internalId}` : `/news/${item.id}`;
+  return (
+    <Link href={href} className="block h-full">
+      {children}
+    </Link>
   );
 }
