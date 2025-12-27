@@ -40,6 +40,7 @@ export default function JoinRequestsPage() {
         const data = await res.json();
         if (data?.authenticated) {
           setAuthed(true);
+          await loadData();
         }
       } catch {
         /* ignore */
@@ -61,6 +62,7 @@ export default function JoinRequestsPage() {
         throw new Error("Invalid credentials");
       }
       setAuthed(true);
+      await loadData();
     } catch (err: any) {
       setError(err?.message || "Login failed");
     } finally {
@@ -83,8 +85,14 @@ export default function JoinRequestsPage() {
         fetch(`${API_BASE}/join`, { credentials: "include" }),
         fetch(`${API_BASE}/projects`, { credentials: "include" }),
       ]);
-      if (!joinsRes.ok) throw new Error("Failed to load join data");
-      if (!projectsRes.ok) throw new Error("Failed to load projects");
+      if (!joinsRes.ok) {
+        const msg = await joinsRes.text();
+        throw new Error(msg || `Failed to load join data (${joinsRes.status})`);
+      }
+      if (!projectsRes.ok) {
+        const msg = await projectsRes.text();
+        throw new Error(msg || `Failed to load projects (${projectsRes.status})`);
+      }
       const joinsJson: JoinItem[] = await joinsRes.json();
       const projectsJson: Project[] = await projectsRes.json();
       setJoinData(Array.isArray(joinsJson) ? joinsJson : []);
@@ -95,13 +103,6 @@ export default function JoinRequestsPage() {
       setLoading(false);
     }
   };
-
-  // load data whenever authenticated
-  useEffect(() => {
-    if (authed) {
-      loadData();
-    }
-  }, [authed]);
 
   const filtered = useMemo(() => {
     const term = filter.trim().toLowerCase();
