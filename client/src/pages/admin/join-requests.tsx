@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Download, LogOut, Search, Users, FolderKanban } from "lucide-react";
 import { API_BASE } from "@/lib/api";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type JoinItem = {
   id: number;
@@ -26,6 +27,7 @@ export default function JoinRequestsPage() {
   const [joinData, setJoinData] = useState<JoinItem[]>([]);
   const [projectsCount, setProjectsCount] = useState(0);
   const [filter, setFilter] = useState("");
+  const isMobile = useIsMobile();
 
   // try to validate session on mount
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function JoinRequestsPage() {
     );
   }, [filter, joinData]);
 
-  const downloadXls = () => {
+  const downloadCsv = () => {
     const rows = [
       ["ID", "Full Name", "Email", "Phone", "Country", "Company", "Created At"],
       ...joinData.map((j) => [
@@ -119,7 +121,7 @@ export default function JoinRequestsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "join_requests.xlsx"; // will open as Excel
+    a.download = "join_requests.csv";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -147,23 +149,23 @@ export default function JoinRequestsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-white px-6 py-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background text-white px-4 md:px-6 py-6 md:py-8 space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Join Requests</h1>
           <p className="text-gray-400 text-sm">View and export all join submissions</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <button
-            onClick={downloadXls}
-            className="flex items-center gap-2 bg-primary text-black px-4 py-2 rounded-lg"
+            onClick={downloadCsv}
+            className="flex items-center justify-center gap-2 bg-primary text-black px-4 py-2 rounded-lg w-full sm:w-auto"
           >
             <Download className="w-4 h-4" />
-            Download XLS
+            Download CSV
           </button>
           <button
             onClick={logout}
-            className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg border border-white/10"
+            className="flex items-center justify-center gap-2 bg-white/10 px-4 py-2 rounded-lg border border-white/10 w-full sm:w-auto"
           >
             <LogOut className="w-4 h-4" />
             Logout
@@ -194,7 +196,7 @@ export default function JoinRequestsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
           <Search className="w-4 h-4 text-gray-400" />
           <input
@@ -206,50 +208,94 @@ export default function JoinRequestsPage() {
         </div>
         <button
           onClick={loadData}
-          className="bg-white/10 border border-white/10 px-4 py-2 rounded-lg hover:bg-white/20"
+          className="bg-white/10 border border-white/10 px-4 py-2 rounded-lg hover:bg-white/20 w-full sm:w-auto"
         >
           Refresh
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-white/10 text-sm">
-          <thead className="bg-white/5">
-            <tr className="text-left">
-              <th className="px-3 py-2 border-b border-white/10">ID</th>
-              <th className="px-3 py-2 border-b border-white/10">Name</th>
-              <th className="px-3 py-2 border-b border-white/10">Email</th>
-              <th className="px-3 py-2 border-b border-white/10">Phone</th>
-              <th className="px-3 py-2 border-b border-white/10">Country</th>
-              <th className="px-3 py-2 border-b border-white/10">Company</th>
-              <th className="px-3 py-2 border-b border-white/10">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((j) => (
-              <tr key={j.id} className="hover:bg-white/5">
-                <td className="px-3 py-2 border-b border-white/10">{j.id}</td>
-                <td className="px-3 py-2 border-b border-white/10">{j.full_name}</td>
-                <td className="px-3 py-2 border-b border-white/10">{j.email || "—"}</td>
-                <td className="px-3 py-2 border-b border-white/10">{j.phone || "—"}</td>
-                <td className="px-3 py-2 border-b border-white/10">{j.country || "—"}</td>
-                <td className="px-3 py-2 border-b border-white/10">{j.company || "—"}</td>
-                <td className="px-3 py-2 border-b border-white/10">
-                  {j.created_at ? new Date(j.created_at).toLocaleString() : "—"}
-                </td>
+      {/* Data view */}
+      {isMobile ? (
+        <div className="space-y-3">
+          {filtered.map((j) => (
+            <div key={j.id} className="bg-card border border-white/10 rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">ID</div>
+                <div className="text-sm font-semibold text-white">{j.id}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">Name</div>
+                <div className="text-sm font-semibold text-white">{j.full_name}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">Email</div>
+                <div className="text-sm text-white">{j.email || "N/A"}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">Phone</div>
+                <div className="text-sm text-white">{j.phone || "N/A"}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">Country</div>
+                <div className="text-sm text-white">{j.country || "N/A"}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">Company</div>
+                <div className="text-sm text-white">{j.company || "N/A"}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-400">Created</div>
+                <div className="text-sm text-white">
+                  {j.created_at ? new Date(j.created_at).toLocaleString() : "N/A"}
+                </div>
+              </div>
+            </div>
+          ))}
+          {!filtered.length && (
+            <div className="text-center text-gray-400 py-6 border border-dashed border-white/10 rounded-lg">
+              No results
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-white/10 text-sm">
+            <thead className="bg-white/5">
+              <tr className="text-left">
+                <th className="px-3 py-2 border-b border-white/10">ID</th>
+                <th className="px-3 py-2 border-b border-white/10">Name</th>
+                <th className="px-3 py-2 border-b border-white/10">Email</th>
+                <th className="px-3 py-2 border-b border-white/10">Phone</th>
+                <th className="px-3 py-2 border-b border-white/10">Country</th>
+                <th className="px-3 py-2 border-b border-white/10">Company</th>
+                <th className="px-3 py-2 border-b border-white/10">Created</th>
               </tr>
-            ))}
-            {!filtered.length && (
-              <tr>
-                <td colSpan={7} className="text-center text-gray-400 py-4">
-                  No results
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((j) => (
+                <tr key={j.id} className="hover:bg-white/5">
+                  <td className="px-3 py-2 border-b border-white/10">{j.id}</td>
+                  <td className="px-3 py-2 border-b border-white/10">{j.full_name}</td>
+                  <td className="px-3 py-2 border-b border-white/10">{j.email || "N/A"}</td>
+                  <td className="px-3 py-2 border-b border-white/10">{j.phone || "N/A"}</td>
+                  <td className="px-3 py-2 border-b border-white/10">{j.country || "N/A"}</td>
+                  <td className="px-3 py-2 border-b border-white/10">{j.company || "N/A"}</td>
+                  <td className="px-3 py-2 border-b border-white/10">
+                    {j.created_at ? new Date(j.created_at).toLocaleString() : "N/A"}
+                  </td>
+                </tr>
+              ))}
+              {!filtered.length && (
+                <tr>
+                  <td colSpan={7} className="text-center text-gray-400 py-4">
+                    No results
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

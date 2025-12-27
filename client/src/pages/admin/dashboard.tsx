@@ -8,6 +8,8 @@ import {
   FolderKanban,
   LogOut,
   ArchiveRestore,
+  Menu,
+  X,
 } from "lucide-react";
 import { ProjectsManager } from "@/components/admin/projects-manager";
 import { EventsManager } from "@/components/admin/events-manager";
@@ -15,11 +17,14 @@ import { NewsManager } from "@/components/admin/news-manager";
 import { BlogsManager } from "@/components/admin/blogs-manager";
 import { BackupManager } from "@/components/admin/backup-manager";
 import { API_BASE } from "@/lib/api";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function AdminDashboard() {
   const [_, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("projects");
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const isMobile = useIsMobile();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     async function verifySession() {
@@ -65,11 +70,36 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Mobile top bar */}
+      <header className="md:hidden sticky top-0 z-20 bg-background/90 backdrop-blur border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <img src="/gtn-logo.png" alt="GTN" className="w-9 h-9" />
+            <div>
+              <div className="font-display font-bold text-white">GTN Admin</div>
+              <div className="text-xs text-primary">Dashboard</div>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="border-white/20 text-white"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+      </header>
+
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/10 bg-card fixed h-full z-10">
+      <aside
+        className={`w-64 border-r border-white/10 bg-card fixed h-full z-30 transform transition-transform duration-200 ease-in-out ${
+          isMobile ? (menuOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
+        }`}
+      >
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="hidden md:flex items-center gap-3 mb-8">
             <img src="/gtn-logo.png" alt="GTN" className="w-10 h-10" />
             <div>
               <div className="font-display font-bold text-white">GTN Admin</div>
@@ -83,7 +113,10 @@ export default function AdminDashboard() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    if (isMobile) setMenuOpen(false);
+                  }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
                     activeTab === tab.id
                       ? "bg-primary/20 text-primary border border-primary/30"
@@ -109,9 +142,23 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
+      {/* Sidebar overlay for mobile */}
+      {isMobile && menuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
-        <div className="max-w-5xl mx-auto">
+      <main className={`flex-1 p-6 md:p-8 ${isMobile ? "ml-0 pt-4" : "ml-64"}`}>
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="md:hidden flex items-center justify-between bg-card border border-white/10 rounded-lg px-4 py-3">
+            <div className="text-sm text-gray-300">Active tab: <span className="text-white font-semibold">{tabs.find(t => t.id === activeTab)?.label}</span></div>
+            <Button variant="outline" size="sm" onClick={handleLogout} className="text-red-400 border-red-400/30">
+              <LogOut className="w-4 h-4 mr-2" /> Logout
+            </Button>
+          </div>
           {activeTab === "projects" && <ProjectsManager />}
           {activeTab === "events" && <EventsManager />}
           {activeTab === "news" && <NewsManager />}
