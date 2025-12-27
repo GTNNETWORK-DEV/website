@@ -15,6 +15,9 @@ type JoinItem = {
 
 type Project = { id: number };
 
+const HARD_USER = (import.meta.env.VITE_ADMIN_USER as string) || "superadmin";
+const HARD_PASS = (import.meta.env.VITE_ADMIN_PASS as string) || "Gtn@123";
+
 export default function JoinRequestsPage() {
   const [error, setError] = useState("");
   const [joinData, setJoinData] = useState<JoinItem[]>([]);
@@ -27,7 +30,20 @@ export default function JoinRequestsPage() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const autoLogin = async () => {
+    const res = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: HARD_USER, password: HARD_PASS }),
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || `Auto-login failed (${res.status})`);
+    }
+  };
+
+  const loadData = async (isRetry = false) => {
     setError("");
     setLoading(true);
     try {
@@ -35,14 +51,26 @@ export default function JoinRequestsPage() {
         fetch(`${API_BASE}/join`, { credentials: "include" }),
         fetch(`${API_BASE}/projects`, { credentials: "include" }),
       ]);
+      const unauthorized = [401, 403];
+
       if (!joinsRes.ok) {
+        if (unauthorized.includes(joinsRes.status) && !isRetry) {
+          await autoLogin();
+          return loadData(true);
+        }
         const msg = await joinsRes.text();
         throw new Error(msg || `Failed to load join data (${joinsRes.status})`);
       }
+
       if (!projectsRes.ok) {
+        if (unauthorized.includes(projectsRes.status) && !isRetry) {
+          await autoLogin();
+          return loadData(true);
+        }
         const msg = await projectsRes.text();
         throw new Error(msg || `Failed to load projects (${projectsRes.status})`);
       }
+
       const joinsJson: JoinItem[] = await joinsRes.json();
       const projectsJson: Project[] = await projectsRes.json();
       setJoinData(Array.isArray(joinsJson) ? joinsJson : []);
