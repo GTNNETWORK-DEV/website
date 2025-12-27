@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "wouter";
-import { Download, LogOut, Search, Users, FolderKanban } from "lucide-react";
+import { Download, Search, Users, FolderKanban } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -16,13 +15,7 @@ type JoinItem = {
 
 type Project = { id: number };
 
-const HARD_USER = "superadmin";
-const HARD_PASS = "Gtn@123";
-
 export default function JoinRequestsPage() {
-  const [_, setLocation] = useLocation();
-  const [authing, setAuthing] = useState(false);
-  const [authed, setAuthed] = useState(false);
   const [error, setError] = useState("");
   const [joinData, setJoinData] = useState<JoinItem[]>([]);
   const [projectsCount, setProjectsCount] = useState(0);
@@ -30,52 +23,9 @@ export default function JoinRequestsPage() {
   const [loading, setLoading] = useState(false);
   const isMobile = useIsMobile();
 
-  // try to validate session on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/session`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (data?.authenticated) {
-          setAuthed(true);
-          await loadData();
-        }
-      } catch {
-        /* ignore */
-      }
-    })();
+    loadData();
   }, []);
-
-  const login = async () => {
-    setAuthing(true);
-    setError("");
-    try {
-      const res = await fetch(`${API_BASE}/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: HARD_USER, password: HARD_PASS }),
-      });
-      if (!res.ok) {
-        throw new Error("Invalid credentials");
-      }
-      setAuthed(true);
-      await loadData();
-    } catch (err: any) {
-      setError(err?.message || "Login failed");
-    } finally {
-      setAuthing(false);
-    }
-  };
-
-  const logout = async () => {
-    await fetch(`${API_BASE}/logout`, { method: "POST", credentials: "include" });
-    setAuthed(false);
-    setJoinData([]);
-    setError("");
-  };
 
   const loadData = async () => {
     setError("");
@@ -137,28 +87,6 @@ export default function JoinRequestsPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (!authed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="max-w-sm w-full bg-card border border-white/10 rounded-xl p-6 space-y-4">
-          <h1 className="text-xl font-bold text-white text-center">Join Requests Admin</h1>
-          <p className="text-sm text-gray-400 text-center">Enter superadmin credentials to continue</p>
-          {error && <div className="text-red-400 text-sm text-center">{error}</div>}
-          <button
-            onClick={login}
-            disabled={authing}
-            className="w-full bg-primary text-black font-semibold py-3 rounded-lg disabled:opacity-60"
-          >
-            {authing ? "Signing in..." : "Sign in as superadmin"}
-          </button>
-          <div className="text-xs text-gray-500 text-center">
-            Username: {HARD_USER} &nbsp;|&nbsp; Password: {HARD_PASS}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background text-white px-4 md:px-6 py-6 md:py-8 space-y-6 md:space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -173,13 +101,6 @@ export default function JoinRequestsPage() {
           >
             <Download className="w-4 h-4" />
             Download CSV
-          </button>
-          <button
-            onClick={logout}
-            className="flex items-center justify-center gap-2 bg-white/10 px-4 py-2 rounded-lg border border-white/10 w-full sm:w-auto"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
           </button>
         </div>
       </div>
