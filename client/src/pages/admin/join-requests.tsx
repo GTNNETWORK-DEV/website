@@ -27,6 +27,7 @@ export default function JoinRequestsPage() {
   const [joinData, setJoinData] = useState<JoinItem[]>([]);
   const [projectsCount, setProjectsCount] = useState(0);
   const [filter, setFilter] = useState("");
+  const [loading, setLoading] = useState(false);
   const isMobile = useIsMobile();
 
   // try to validate session on mount
@@ -39,7 +40,6 @@ export default function JoinRequestsPage() {
         const data = await res.json();
         if (data?.authenticated) {
           setAuthed(true);
-          await loadData();
         }
       } catch {
         /* ignore */
@@ -61,7 +61,6 @@ export default function JoinRequestsPage() {
         throw new Error("Invalid credentials");
       }
       setAuthed(true);
-      await loadData();
     } catch (err: any) {
       setError(err?.message || "Login failed");
     } finally {
@@ -73,10 +72,12 @@ export default function JoinRequestsPage() {
     await fetch(`${API_BASE}/logout`, { method: "POST", credentials: "include" });
     setAuthed(false);
     setJoinData([]);
+    setError("");
   };
 
   const loadData = async () => {
     setError("");
+    setLoading(true);
     try {
       const [joinsRes, projectsRes] = await Promise.all([
         fetch(`${API_BASE}/join`, { credentials: "include" }),
@@ -90,8 +91,17 @@ export default function JoinRequestsPage() {
       setProjectsCount(Array.isArray(projectsJson) ? projectsJson.length : 0);
     } catch (err: any) {
       setError(err?.message || "Load failed");
+    } finally {
+      setLoading(false);
     }
   };
+
+  // load data whenever authenticated
+  useEffect(() => {
+    if (authed) {
+      loadData();
+    }
+  }, [authed]);
 
   const filtered = useMemo(() => {
     const term = filter.trim().toLowerCase();
@@ -209,10 +219,17 @@ export default function JoinRequestsPage() {
         <button
           onClick={loadData}
           className="bg-white/10 border border-white/10 px-4 py-2 rounded-lg hover:bg-white/20 w-full sm:w-auto"
+          disabled={loading}
         >
-          Refresh
+          {loading ? "Loading..." : "Refresh"}
         </button>
       </div>
+
+      {error && (
+        <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
+          {error}
+        </div>
+      )}
 
       {/* Data view */}
       {isMobile ? (
