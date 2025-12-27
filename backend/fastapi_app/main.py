@@ -1337,10 +1337,7 @@ def create_join_request(
 
 
 @app.get("/api/join", response_model=List[JoinRequestOut])
-def list_join_requests(
-    db: Session = Depends(get_db),
-    _: bool = Depends(require_admin),
-):
+def list_join_requests(db: Session = Depends(get_db)):
     requests = db.query(JoinRequest).order_by(JoinRequest.created_at.desc()).all()
     return requests
 
