@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { apiGet } from "@/lib/api";
 
 type CryptoRow = {
   id: string;
@@ -153,72 +154,26 @@ export function GTNCryptoTable() {
         if (rows.length === 0) setLoading(true);
         setError(null);
 
-        const res = await fetch(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h",
-          { signal: controller.signal },
-        );
-
-        if (!res.ok) {
-          throw new Error(`Failed to load market data (${res.status})`);
-        }
-
-        const markets = (await res.json()) as Array<{
-          id: string;
-          name: string;
-          symbol: string;
-          image?: string;
-          current_price: number;
-          price_change_percentage_24h: number;
-          total_volume: number;
-        }>;
-
-        const withVolumeChange = await Promise.all(
-          markets.map(async (coin) => {
-            let volumeChange: number | null = null;
-            try {
-              const chartRes = await fetch(
-                `https://api.coingecko.com/api/v3/coins/${coin.id}/market_chart?vs_currency=usd&days=2&interval=daily`,
-                { signal: controller.signal },
-              );
-              if (chartRes.ok) {
-                const chart = await chartRes.json();
-                const volumes: [number, number][] = chart?.total_volumes ?? [];
-                if (Array.isArray(volumes) && volumes.length >= 2) {
-                  const prev = volumes[volumes.length - 2]?.[1];
-                  const latest = volumes[volumes.length - 1]?.[1];
-                  if (typeof prev === "number" && typeof latest === "number" && prev > 0) {
-                    volumeChange = ((latest - prev) / prev) * 100;
-                  }
-                }
-              }
-            } catch (err) {
-              if ((err as Error)?.name === "AbortError") {
-                return null;
-              }
-            }
-
-            return {
-              id: coin.id,
-              name: coin.name,
-              symbol: coin.symbol.toUpperCase(),
-              image: coin.image,
-              price: coin.current_price,
-              priceChange24h: coin.price_change_percentage_24h ?? null,
-              volume: coin.total_volume,
-              volumeChange24h: volumeChange,
-            } satisfies CryptoRow;
-          }),
-        );
-
+        const res = await apiGet("/market-data", { signal: controller.signal });
+        const payloadRows = Array.isArray((res as any)?.rows)
+          ? ((res as any).rows as CryptoRow[])
+          : Array.isArray(res)
+            ? (res as CryptoRow[])
+            : [];
         if (controller.signal.aborted || cancelled) return;
 
-        const filtered = withVolumeChange.filter(Boolean) as CryptoRow[];
-        const sorted = filtered.sort((a, b) => b.volume - a.volume);
-        setRows(sorted);
+        const filtered = payloadRows.filter(Boolean) as CryptoRow[];
+        const sorted = filtered.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0));
+        if (sorted.length === 0) {
+          setError("No market data available right now.");
+          setRows(FALLBACK_DATA);
+        } else {
+          setRows(sorted);
+        }
       } catch (err) {
         if ((err as Error)?.name === "AbortError" || cancelled) return;
-        setError(null);
-        setRows(FALLBACK_DATA);
+        setError((err as Error)?.message || "Unable to fetch market data");
+        setRows((prev) => (prev.length ? prev : FALLBACK_DATA));
       } finally {
         if (!controller.signal.aborted && !cancelled) {
           setLoading(false);
@@ -227,7 +182,7 @@ export function GTNCryptoTable() {
     };
 
     load();
-    const interval = setInterval(load, 45000);
+    const interval = setInterval(load, 60000);
 
     return () => {
       cancelled = true;
@@ -262,10 +217,16 @@ export function GTNCryptoTable() {
           {loading && (
             <div className="flex items-center gap-2 text-gray-400">
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Updating prices…</span>
+              <span>Updating prices...</span>
             </div>
           )}
         </div>
+
+        {!loading && error && (
+          <div className="mb-4 text-sm text-amber-300">
+            {error}
+          </div>
+        )}
 
         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-lg shadow-xl">
           <Table className="w-full">
@@ -286,7 +247,7 @@ export function GTNCryptoTable() {
               {loading && (
                 <TableRow>
                   <TableCell colSpan={5} className="py-8 text-center text-gray-400">
-                    Fetching live market data…
+                    Fetching live market data...
                   </TableCell>
                 </TableRow>
               )}

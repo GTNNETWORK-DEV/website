@@ -7,8 +7,11 @@ import json
 import zipfile
 from io import BytesIO
 from pathlib import Path
-from typing import Optional, List, Generator
+from typing import Optional, List, Generator, Any, Dict
 from datetime import date, datetime
+import asyncio
+
+import httpx
 
 from fastapi import (
     FastAPI,
@@ -345,6 +348,13 @@ class JoinRequestOut(BaseModel):
 COOKIE_NAME = "gtn_session"
 SESSION_TTL_SECONDS = 60 * 60 * 24 * 7  # 7 days
 
+COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3"
+COINGECKO_MARKET_LIMIT = int(os.getenv("COINGECKO_MARKET_LIMIT", "20"))
+COINGECKO_VOLUME_SAMPLE_LIMIT = int(os.getenv("COINGECKO_VOLUME_SAMPLE_LIMIT", "10"))
+COINGECKO_CACHE_SECONDS = int(os.getenv("COINGECKO_CACHE_SECONDS", "120"))
+COINGECKO_USER_AGENT = os.getenv("COINGECKO_USER_AGENT", "GTNNetwork/1.0 (+https://gtnnetwork.com)")
+_coingecko_cache: Dict[str, Any] = {"rows": None, "ts": 0, "as_of": None}
+
 
 def _sign(value: str) -> str:
     sig = hmac.new(SESSION_SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
@@ -383,6 +393,78 @@ def require_admin(request: Request):
     if token and validate_session_token(token):
         return True
     raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+# --------------------
+# CoinGecko proxy helpers
+# --------------------
+async def fetch_coingecko_json(path: str, client: httpx.AsyncClient) -> Any:
+    url = f"{COINGECKO_BASE_URL}{path}"
+    response = await client.get(
+        url,
+        headers={"accept": "application/json", "user-agent": COINGECKO_USER_AGENT},
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+async def get_volume_change(coin_id: str, client: httpx.AsyncClient) -> Optional[float]:
+    chart = await fetch_coingecko_json(
+        f"/coins/{coin_id}/market_chart?vs_currency=usd&days=2&interval=daily",
+        client,
+    )
+    volumes: list = chart.get("total_volumes") or []
+    if not isinstance(volumes, list) or len(volumes) < 2:
+        return None
+
+    try:
+        prev = volumes[-2][1]
+        latest = volumes[-1][1]
+        if isinstance(prev, (int, float)) and isinstance(latest, (int, float)) and prev > 0:
+            return ((latest - prev) / prev) * 100
+    except Exception:
+        return None
+
+    return None
+
+
+async def load_market_rows() -> List[Dict[str, Any]]:
+    timeout = httpx.Timeout(10.0, read=10.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        markets = await fetch_coingecko_json(
+            f"/coins/markets?vs_currency=usd&order=volume_desc&per_page={COINGECKO_MARKET_LIMIT}&page=1&sparkline=false&price_change_percentage=24h",
+            client,
+        )
+
+        rows: List[Dict[str, Any]] = []
+        for idx, coin in enumerate(markets[:COINGECKO_MARKET_LIMIT]):
+            volume_change = None
+            if idx < COINGECKO_VOLUME_SAMPLE_LIMIT:
+                try:
+                    volume_change = await get_volume_change(coin.get("id", ""), client)
+                except httpx.HTTPStatusError as exc:
+                    # If CoinGecko is throttling, stop additional chart calls
+                    if exc.response.status_code == 429:
+                        break
+                except Exception:
+                    # ignore per-coin chart failures
+                    pass
+                await asyncio.sleep(0.1)
+
+            rows.append(
+                {
+                    "id": coin.get("id"),
+                    "name": coin.get("name"),
+                    "symbol": str(coin.get("symbol", "")).upper(),
+                    "image": coin.get("image"),
+                    "price": coin.get("current_price"),
+                    "priceChange24h": coin.get("price_change_percentage_24h"),
+                    "volume": coin.get("total_volume"),
+                    "volumeChange24h": volume_change,
+                }
+            )
+
+    return rows
 
 
 # --------------------
@@ -485,6 +567,7 @@ def session(request: Request):
 async def upload_file(
     _: bool = Depends(require_admin),
     file: UploadFile = File(...),
+    request: Request = None,
 ):
     if not file:
         raise HTTPException(status_code=400, detail="No file received")
@@ -503,11 +586,15 @@ async def upload_file(
         out_file.write(content)
 
     relative_url = f"/uploads/{final_name}"
-    public_url = (
-        f"{UPLOAD_BASE_URL.rstrip('/')}{relative_url}"
-        if UPLOAD_BASE_URL
-        else relative_url
-    )
+    if UPLOAD_BASE_URL:
+        public_url = f"{UPLOAD_BASE_URL.rstrip('/')}{relative_url}"
+    else:
+        # Derive absolute URL from the current request so clients get a
+        # fully-qualified link even when the backend is on a separate host.
+        try:
+            public_url = str(request.url_for("uploads", path=final_name))
+        except Exception:
+            public_url = relative_url
 
     return {"success": True, "url": public_url}
 
@@ -1340,6 +1427,36 @@ def create_join_request(
 def list_join_requests(db: Session = Depends(get_db)):
     requests = db.query(JoinRequest).order_by(JoinRequest.created_at.desc()).all()
     return requests
+
+
+# Market data proxy to avoid client-side CORS/rate limits
+@app.get("/api/market-data")
+async def market_data():
+    now = time.time()
+    cache_age = now - _coingecko_cache["ts"]
+    if _coingecko_cache["rows"] and cache_age < COINGECKO_CACHE_SECONDS:
+        return {
+            "rows": _coingecko_cache["rows"],
+            "cached": True,
+            "as_of": _coingecko_cache["as_of"],
+            "cache_age_seconds": cache_age,
+        }
+
+    try:
+        rows = await load_market_rows()
+    except Exception as exc:
+        if _coingecko_cache["rows"]:
+            return {
+                "rows": _coingecko_cache["rows"],
+                "cached": True,
+                "as_of": _coingecko_cache["as_of"],
+                "error": str(exc),
+            }
+        raise HTTPException(status_code=502, detail="Failed to fetch market data")
+
+    as_of = datetime.utcnow().isoformat() + "Z"
+    _coingecko_cache.update({"rows": rows, "ts": now, "as_of": as_of})
+    return {"rows": rows, "cached": False, "as_of": as_of, "cache_age_seconds": 0}
 
 
 # --------------------
