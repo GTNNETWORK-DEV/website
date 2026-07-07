@@ -8,6 +8,7 @@ export function GTNNavbar() {
 
   const navLinks = [
     { name: "About", href: "/#about" },
+    { name: "Founder", href: "/#founder" },
     { name: "Offerings", href: "/#offer" },
     { name: "Projects", href: "/#projects" },
   ];

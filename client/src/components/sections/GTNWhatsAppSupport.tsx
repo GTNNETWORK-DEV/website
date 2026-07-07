@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { gtnOfficialLinks } from "@/lib/gtn-links";
 
 export function GTNWhatsAppSupport() {
   return (
     <motion.a
-      href="https://wa.me/441296924055?text=Hello%20GTN%20Support!"
-      // ↑ replace with your real WhatsApp support number
+      href={gtnOfficialLinks.whatsappCommunity}
       target="_blank"
       rel="noopener noreferrer"
       initial={{ scale: 0, opacity: 0 }}

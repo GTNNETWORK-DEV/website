@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Facebook, Send, ChevronLeft } from "lucide-react";
+import { gtnOfficialLinks } from "@/lib/gtn-links";
 
 export function GTNSocialTab() {
   const [open, setOpen] = useState(false);
@@ -8,19 +9,19 @@ export function GTNSocialTab() {
   const socials = [
     {
       icon: Instagram,
-      href: "https://www.instagram.com/gtnnetworkofficial",
+      href: gtnOfficialLinks.instagram,
       color: "text-white",
       bg: "bg-[linear-gradient(135deg,#f58529,#dd2a7b,#8134af)]",
     },
     {
       icon: Facebook,
-      href: "https://www.facebook.com/share/14RwBdxmLrH/?mibextid=wwXIfr",
+      href: gtnOfficialLinks.facebookPage,
       color: "text-white",
       bg: "bg-[linear-gradient(135deg,#3b82f6,#0b5fd3)]",
     },
     {
       icon: Send, // Telegram
-      href: "https://t.me/gtnglobalnetwork",
+      href: gtnOfficialLinks.telegram,
       color: "text-white",
       bg: "bg-[radial-gradient(circle_at_30%_30%,#5fc3ff_10%,#3898ff_60%,#1d4ed8_100%)]",
     },

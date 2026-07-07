@@ -17,9 +17,10 @@ import { GTNNews } from "@/components/sections/gtn-news";
 import { GTNJoin } from "@/components/sections/gtn-join";
 import { GTNCTA } from "@/components/sections/gtn-cta";
 import { GTNStats } from "@/components/sections/GTNStats";
-import { GTNCryptoTable } from "@/components/sections/gtn-crypto-table";
 import { GTNSocialTab } from "@/components/sections/GTNSocialTab";
 import { GTNWhatsAppSupport } from "@/components/sections/GTNWhatsAppSupport";
+import { GTNFounder } from "@/components/sections/gtn-founder";
+import { gtnOfficialChannels, gtnWebsite } from "@/lib/gtn-links";
 
 
 export default function GTNHome() {
@@ -32,6 +33,7 @@ export default function GTNHome() {
       <GTNLeadBenefits />
       <GTNStats />
       <GTNAbout />
+      <GTNFounder />
       <GTNOngoingProjects />
       <GTNOngoingEvents />
       <GTNBenefits />
@@ -43,7 +45,6 @@ export default function GTNHome() {
 
       <GTNSupportSystem />
       <GTNWhyChoose />
-      <GTNCryptoTable />
       <GTNBlog />
       <GTNNews />
       <GTNJoin />
@@ -62,7 +63,7 @@ export default function GTNHome() {
                   <div className="text-xs font-semibold text-primary uppercase tracking-widest">Global Team Network</div>
                 </div>
               </div>
-              <p className="text-gray-400 text-sm">Empowering networkers, leaders, and investors worldwide.</p>
+              <p className="text-gray-400 text-sm">A global Leader Ecosystem connecting trusted leaders, communities, training, and opportunities worldwide.</p>
             </div>
 
             {/* Quick Links */}
@@ -70,6 +71,7 @@ export default function GTNHome() {
               <h3 className="font-display font-bold text-white mb-4">Platform</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#about" className="hover:text-primary transition-colors">About Us</a></li>
+                <li><a href="#founder" className="hover:text-primary transition-colors">Founder</a></li>
                 <li><a href="#offer" className="hover:text-primary transition-colors">Features</a></li>
                 <li><a href="#join" className="hover:text-primary transition-colors">Join</a></li>
               </ul>
@@ -79,19 +81,20 @@ export default function GTNHome() {
             <div>
               <h3 className="font-display font-bold text-white mb-4">Resources</h3>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-primary transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+                <li><a href={gtnWebsite} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">Website</a></li>
+                <li><a href="/blogs" className="hover:text-primary transition-colors">Blog</a></li>
+                <li><a href={gtnOfficialChannels[1].href} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">Contact</a></li>
               </ul>
             </div>
 
-            {/* Legal */}
             <div>
-              <h3 className="font-display font-bold text-white mb-4">Legal</h3>
+              <h3 className="font-display font-bold text-white mb-4">Official Channels</h3>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
+                {gtnOfficialChannels.map((link) => (
+                  <li key={link.label}>
+                    <a href={link.href} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">{link.label}</a>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

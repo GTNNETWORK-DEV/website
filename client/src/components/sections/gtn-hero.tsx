@@ -77,7 +77,7 @@ export function GTNHero() {
             >
               A Global Platform Built for{" "}
               <span className="gradient-accent text-transparent bg-clip-text">
-                Networkers
+                Leaders
               </span>
             </motion.h1>
 
@@ -85,23 +85,21 @@ export function GTNHero() {
               variants={itemVariants}
               className="text-3xl md:text-4xl font-display font-black text-transparent bg-clip-text bg-linear-to-r from-secondary via-primary to-accent animate-pulse"
             >
-              Turn Your Network Into Net Worth
+              Connecting Leaders. Building Communities.
             </motion.h2>
 
             <motion.p
               variants={itemVariants}
               className="text-xl text-gray-300 leading-relaxed max-w-xl"
             >
-              Helping Independent Business Owners Build their Business
+              A global Leader Ecosystem for trusted profiles, communities, training, companies, and opportunity.
             </motion.p>
 
             <motion.p
               variants={itemVariants}
               className="text-lg text-gray-400 leading-relaxed max-w-xl"
             >
-              Does your business need more leaders? Increase the growth of your
-              business with our unique social platform. Get verified network
-              marketing leads. <br />
+              Discover featured leaders, follow community activity, connect with companies, and grow through reputation-led visibility. <br />
               <span className="text-primary font-semibold">Join Up for FREE.</span>
             </motion.p>
 
